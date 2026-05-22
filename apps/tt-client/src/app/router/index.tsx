@@ -7,6 +7,9 @@ import AuthLayout from '../layouts/AuthLayout';
 import RegisterPage from '@/pages/auth/RegisterPage';
 import TournamentPage from '@/pages/tournament/TournamentPage';
 import CreateTournamentPage from '@/pages/tournament/CreateTournamentPage';
+import TournamentDetailsPage from '@/pages/tournament/TournamentDetailsPage';
+import MembersPage from '@/pages/member/MemberPage';
+import MatchesPage from '@/pages/match/MatchesPage';
 
 export const router = createBrowserRouter([
   {
@@ -38,7 +41,19 @@ export const router = createBrowserRouter([
       },
       {
         path: '/tournaments/create',
-        element: <CreateTournamentPage/>,
+        element: <CreateTournamentPage />,
+      },
+      {
+        path: '/tournaments/:id',
+        element: <TournamentDetailsPage />,
+      },
+      {
+        path: '/members',
+        element: <MembersPage />,
+      },
+      {
+        path: '/matches',
+        element: <MatchesPage />,
       },
     ],
   },
