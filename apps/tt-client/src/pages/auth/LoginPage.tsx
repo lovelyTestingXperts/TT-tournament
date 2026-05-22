@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Trophy } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-
+import { Link } from 'react-router-dom';
 import Button from '@/components/ui/button/Button';
 import FormInput from '@/components/ui/form/FormInput';
 import FormPasswordInput from '@/components/ui/form/FormPasswordInput';
@@ -120,15 +120,17 @@ export default function LoginPage() {
         "
         >
           Don&apos;t have an account?{' '}
-          <button
+          <Link
+            to="/register"
             className="
             font-medium
-            text-white
-            hover:underline
+            text-violet-300
+            transition
+            hover:text-violet-200
           "
           >
-            Register
-          </button>
+            Create account
+          </Link>
         </div>
       </div>
     </div>

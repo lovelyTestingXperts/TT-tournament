@@ -1,32 +1,44 @@
-import StatCard from '@/components/ui/card/StatCard';
-
-import Grid from '@/components/layout/Grid';
 import PageContainer from '@/components/layout/PageContainer';
+
+import ActivityTimeline from '@/features/dashboard/components/ActivityTimeline';
+import DashboardHero from '@/features/dashboard/components/DashboardHero';
+import DashboardStats from '@/features/dashboard/components/DashboardStats';
+import QuickActions from '@/features/dashboard/components/QuickActions';
+import RecentTournaments from '@/features/dashboard/components/RecentTournaments';
+import UpcomingMatches from '@/features/dashboard/components/UpcomingMatches';
 
 export default function DashboardPage() {
   return (
     <PageContainer>
-      <Grid>
-        <StatCard
-          title="Tournaments"
-          value={12}
-        />
+      <div className="space-y-6">
+        <DashboardHero />
 
-        <StatCard
-          title="Matches"
-          value={124}
-        />
+        <DashboardStats />
 
-        <StatCard
-          title="Players"
-          value={280}
-        />
+        <div
+          className="
+          grid
+          gap-6
+          xl:grid-cols-[2fr_1fr]
+        "
+        >
+          <RecentTournaments />
 
-        <StatCard
-          title="Members"
-          value={1420}
-        />
-      </Grid>
+          <UpcomingMatches />
+        </div>
+
+        <div
+          className="
+          grid
+          gap-6
+          xl:grid-cols-[1fr_2fr]
+        "
+        >
+          <QuickActions />
+
+          <ActivityTimeline />
+        </div>
+      </div>
     </PageContainer>
   );
 }

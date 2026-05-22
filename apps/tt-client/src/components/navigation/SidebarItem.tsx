@@ -1,60 +1,50 @@
-import {
-  Calendar,
-  LayoutDashboard,
-  Trophy,
-  Users,
-} from 'lucide-react';
+import { cn } from '@/lib/cn';
 
-import AppLogo from './AppLogo';
-import SidebarItem from './SidebarItem';
+type SidebarItemProps = {
+  icon: React.ReactNode;
+  label: string;
+  active?: boolean;
+  onClick?: () => void;
+};
 
-export default function Sidebar() {
+export default function SidebarItem({
+  icon,
+  label,
+  active = false,
+  onClick,
+}: SidebarItemProps) {
   return (
-    <aside
-      className="
-      glass-card
-      flex
-      h-[calc(100vh-32px)]
-      w-[280px]
-      flex-col
-      rounded-[36px]
-      p-5
-      "
+    <button
+      onClick={onClick}
+      className={cn(
+        `
+        flex
+        w-full
+        items-center
+        gap-3
+        rounded-2xl
+        px-4
+        py-3
+        text-sm
+        transition-all
+        duration-300
+        `,
+        active
+          ? `
+          bg-white/15
+          text-white
+          shadow-lg
+          `
+          : `
+          text-white/60
+          hover:bg-white/10
+          hover:text-white
+          `,
+      )}
     >
-      <AppLogo />
+      <span>{icon}</span>
 
-      <div className="mt-10 space-y-2">
-        <SidebarItem
-          icon={
-            <LayoutDashboard
-              size={18}
-            />
-          }
-          label="Dashboard"
-          active
-        />
-
-        <SidebarItem
-          icon={
-            <Trophy size={18} />
-          }
-          label="Tournaments"
-        />
-
-        <SidebarItem
-          icon={
-            <Calendar size={18} />
-          }
-          label="Matches"
-        />
-
-        <SidebarItem
-          icon={
-            <Users size={18} />
-          }
-          label="Members"
-        />
-      </div>
-    </aside>
+      <span>{label}</span>
+    </button>
   );
 }
