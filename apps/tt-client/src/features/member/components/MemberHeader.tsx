@@ -4,30 +4,18 @@ import Button from '@/components/ui/button/Button';
 
 export default function MemberHeader() {
   return (
-    <div
-      className="
-      flex
-      flex-col
-      gap-5
-      md:flex-row
-      md:items-center
-      md:justify-between
-      "
-    >
+    <div className="flex items-center justify-between">
       <div>
-        <h1 className="text-3xl font-bold">
-          Members
-        </h1>
+        <h1 className="text-3xl font-bold text-white">User Management</h1>
 
-        <p className="text-white/60">
-          Manage players,
-          referees and members.
+        <p className="mt-1 text-sm text-zinc-400">
+          Manage players, referees and members across tournaments.
         </p>
       </div>
 
-      <Button size="lg">
-        <Plus size={18} />
-        Add Member
+      <Button className="gap-2 rounded-xl">
+        <Plus className="size-4" />
+        Add User
       </Button>
     </div>
   );
