@@ -49,3 +49,5 @@ Thumbs.db
 .nx/self-healing
 vite.config.*.timestamp*
 test-output
+
+.env
