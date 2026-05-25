@@ -32,7 +32,7 @@ export default function AppLogo() {
       {/* Text */}
       <div className="flex flex-col leading-tight">
         <h1 className="text-base font-bold tracking-tight text-white">
-          TT Arena
+          TX sports
         </h1>
 
         <p className="text-xs font-medium text-white/50">

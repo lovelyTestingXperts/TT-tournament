@@ -7,6 +7,7 @@ import {
   User,
   UserSchema,
 } from './schemas/user.schema';
+import { UsersResolver } from './user.resolver';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import {
     ]),
   ],
 
-  providers: [UsersService],
+  providers: [UsersResolver, UsersService],
 
   exports: [UsersService], // IMPORTANT
 })

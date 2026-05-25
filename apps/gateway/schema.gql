@@ -8,27 +8,66 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 scalar DateTime
 
 type Mutation {
+  createUser(registerInput: RegisterInput!): UserEntity!
+  deleteUser(id: String!): Boolean!
   register(input: RegisterInput!): UserEntity!
+  updateUser(id: String!, input: UpdateUserInput!): UserEntity!
+}
+
+type PaginatedUsersEntity {
+  items: [UserEntity!]!
+  meta: PaginationMeta!
+}
+
+type PaginationMeta {
+  limit: Int!
+  page: Int!
+  total: Int!
+  totalPages: Int!
 }
 
 type Query {
   healthCheck: String!
+  user(id: String!): UserEntity!
+  users(input: UsersInput): PaginatedUsersEntity!
 }
 
 input RegisterInput {
   email: String!
-  fullName: String!
+  employeeId: String!
+  firstName: String!
+  lastName: String!
   password: String!
   phoneNumber: String
-  role: UserRole
+}
+
+enum SortOrder {
+  ASC
+  DESC
+}
+
+input UpdateUserInput {
+  avatar: String
+  bio: String
+  firstName: String
+  lastName: String
+  phoneNumber: String
 }
 
 type UserEntity {
+  avatar: String
+  bio: String
   createdAt: DateTime!
   email: String!
+  emailVerifiedAt: DateTime
+  employeeId: String!
+  firstName: String!
   fullName: String!
   id: ID!
+  isActive: Boolean!
   isEmailVerified: Boolean!
+  lastLoginAt: DateTime
+  lastName: String!
   phoneNumber: String
   role: UserRole!
   updatedAt: DateTime!
@@ -39,4 +78,18 @@ enum UserRole {
   MEMBER
   PLAYER
   REFEREE
+}
+
+enum UserSortField {
+  CREATED_AT
+  EMAIL
+  FULL_NAME
+}
+
+input UsersInput {
+  limit: Int = 10
+  page: Int = 1
+  search: String
+  sortBy: UserSortField = CREATED_AT
+  sortOrder: SortOrder = DESC
 }

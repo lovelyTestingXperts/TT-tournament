@@ -17,19 +17,42 @@ export class UserEntity {
   id!: string;
 
   @Field()
+  firstName!: string;
+
+  @Field()
+  lastName!: string;
+
+  @Field()
   fullName!: string;
 
   @Field()
   email!: string;
+  @Field()
+  employeeId!: string;
 
   @Field({ nullable: true })
   phoneNumber?: string;
 
   @Field(() => UserRole)
-    role: UserRole = "admin";
+  role!: UserRole;
 
   @Field()
-    isEmailVerified: boolean = false;
+  isEmailVerified!: boolean;
+
+  @Field()
+  isActive!: boolean;
+
+  @Field({ nullable: true })
+  avatar?: string;
+
+  @Field({ nullable: true })
+  bio?: string;
+
+  @Field({ nullable: true })
+  lastLoginAt?: Date;
+
+  @Field({ nullable: true })
+  emailVerifiedAt?: Date;
 
   @Field()
   createdAt!: Date;
