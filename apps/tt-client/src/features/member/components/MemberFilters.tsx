@@ -3,7 +3,44 @@ import { Search } from 'lucide-react';
 import Input from '@/components/ui/input/Input';
 import Button from '@/components/ui/button/Button';
 
-export default function MemberFilter() {
+type MemberFilterProps = {
+  search: string;
+  role?: string;
+  status?: string;
+  sort?: string;
+
+  onSearchChange: (
+    value: string
+  ) => void;
+
+  onRoleChange: (
+    value?: string
+  ) => void;
+
+  onStatusChange: (
+    value?: string
+  ) => void;
+
+  onSortChange: (
+    value?: string
+  ) => void;
+
+  onReset: () => void;
+};
+
+export default function MemberFilter({
+  search,
+  role,
+  status,
+  sort,
+
+  onSearchChange,
+  onRoleChange,
+  onStatusChange,
+  onSortChange,
+
+  onReset,
+}: MemberFilterProps) {
   return (
     <div
       className="
@@ -27,6 +64,12 @@ export default function MemberFilter() {
           />
 
           <Input
+            value={search}
+            onChange={(e) =>
+              onSearchChange(
+                e.target.value
+              )
+            }
             placeholder="Search by name, email or phone..."
             className="pl-10"
           />
@@ -34,6 +77,12 @@ export default function MemberFilter() {
 
         {/* role */}
         <select
+          value={role ?? ''}
+          onChange={(e) =>
+            onRoleChange(
+              e.target.value || undefined
+            )
+          }
           className="
             h-11 rounded-xl
             border border-white/10
@@ -42,15 +91,35 @@ export default function MemberFilter() {
             outline-none
           "
         >
-          <option>All Roles</option>
-          <option>Admin</option>
-          <option>Referee</option>
-          <option>Player</option>
-          <option>Member</option>
+          <option value="">
+            All Roles
+          </option>
+
+          <option value="ADMIN">
+            Admin
+          </option>
+
+          <option value="REFEREE">
+            Referee
+          </option>
+
+          <option value="PLAYER">
+            Player
+          </option>
+
+          <option value="MEMBER">
+            Member
+          </option>
         </select>
 
         {/* status */}
         <select
+          value={status ?? ''}
+          onChange={(e) =>
+            onStatusChange(
+              e.target.value || undefined
+            )
+          }
           className="
             h-11 rounded-xl
             border border-white/10
@@ -59,15 +128,27 @@ export default function MemberFilter() {
             outline-none
           "
         >
-          <option>All Status</option>
-          <option>Active</option>
-          <option>Inactive</option>
-          <option>Verified</option>
-          <option>Unverified</option>
+          <option value="">
+            All Status
+          </option>
+
+          <option value="ACTIVE">
+            Active
+          </option>
+
+          <option value="INACTIVE">
+            Inactive
+          </option>
         </select>
 
         {/* sort */}
         <select
+          value={sort ?? ''}
+          onChange={(e) =>
+            onSortChange(
+              e.target.value || undefined
+            )
+          }
           className="
             h-11 rounded-xl
             border border-white/10
@@ -76,13 +157,26 @@ export default function MemberFilter() {
             outline-none
           "
         >
-          <option>Newest First</option>
-          <option>Oldest First</option>
-          <option>Name A-Z</option>
-          <option>Name Z-A</option>
+          <option value="NEWEST">
+            Newest First
+          </option>
+
+          <option value="OLDEST">
+            Oldest First
+          </option>
+
+          <option value="NAME_ASC">
+            Name A-Z
+          </option>
+
+          <option value="NAME_DESC">
+            Name Z-A
+          </option>
         </select>
 
-        <Button>Reset</Button>
+        <Button onClick={onReset}>
+          Reset
+        </Button>
       </div>
     </div>
   );

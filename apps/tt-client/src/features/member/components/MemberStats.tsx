@@ -5,30 +5,51 @@ import {
   UserCheck,
 } from 'lucide-react';
 
-const stats = [
-  {
-    title: 'Total Users',
-    value: '248',
-    icon: Users,
-  },
-  {
-    title: 'Players',
-    value: '126',
-    icon: Trophy,
-  },
-  {
-    title: 'Referees',
-    value: '22',
-    icon: Shield,
-  },
-  {
-    title: 'Active Users',
-    value: '201',
-    icon: UserCheck,
-  },
-];
+type Member = {
+  id: string;
+  role: string[];
+  isActive: boolean;
+};
 
-export default function MemberStats() {
+type MemberStatsProps = {
+  members: Member[];
+};
+
+export default function MemberStats({
+  members,
+}: MemberStatsProps) {
+  const stats = [
+    {
+      title: 'Total Users',
+      value: members.length,
+      icon: Users,
+    },
+
+    {
+      title: 'Players',
+      value: members.filter((member) =>
+        member.role.includes('player')
+      ).length,
+      icon: Trophy,
+    },
+
+    {
+      title: 'Referees',
+      value: members.filter((member) =>
+        member.role.includes('referee')
+      ).length,
+      icon: Shield,
+    },
+
+    {
+      title: 'Active Users',
+      value: members.filter(
+        (member) => member.isActive
+      ).length,
+      icon: UserCheck,
+    },
+  ];
+
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
       {stats.map((item) => {

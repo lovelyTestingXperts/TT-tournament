@@ -27,6 +27,7 @@ export class UserEntity {
 
   @Field()
   email!: string;
+  
   @Field()
   employeeId!: string;
 

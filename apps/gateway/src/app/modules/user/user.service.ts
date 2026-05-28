@@ -139,6 +139,9 @@ export class UsersService {
           filter,
         ),
       ]);
+    console.log({
+      filter, users
+    })
 
     return {
       items: users,
