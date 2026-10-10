@@ -1,6 +1,8 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 
@@ -15,220 +17,263 @@ import {
 } from './schemas/user.schema';
 
 import { RegisterInput } from '../auth/dto/register.input';
+import { CreateUserInput } from './dto/create-user.input';
 import { UsersInput } from './dto/users.input';
 import { PaginatedUsersEntity } from './entity/pagingated-users.entity';
 import { UserSortField } from './enums/user-sort-field.enum';
 import { SortOrder } from './enums/sort-order.enum';
 import { UpdateUserInput } from './dto/update-user.input';
+import { USER_ERRORS } from './user.constants';
+import { UserRole } from '../../../shared/enums/user-role.enum';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
-  ) { }
+  ) {}
 
-  async create(
-    registerInput: RegisterInput,
-  ): Promise<User> {
-    const email =
-      registerInput.email.toLowerCase();
+  async create(input: RegisterInput | CreateUserInput): Promise<User> {
+    try {
+      const email = input.email.toLowerCase().trim();
 
-    const existingUser =
-      await this.userModel.findOne({
+      const existingUser = await this.userModel.findOne({
         email,
       });
 
-    if (existingUser) {
-      throw new ConflictException(
-        'User already exists',
-      );
-    }
+      if (existingUser) {
+        throw new ConflictException(USER_ERRORS.USER_ALREADY_EXISTS);
+      }
 
-    const hashedPassword =
-      await bcrypt.hash(
-        registerInput.password,
-        10,
-      );
+      const hashedPassword = await bcrypt.hash(input.password, 10);
 
-    const fullName =
-      `${registerInput.firstName} ${registerInput.lastName}`;
+      const firstName = input.firstName.trim();
+      const lastName = input.lastName.trim();
+      const fullName = `${firstName} ${lastName}`.trim();
 
-    const user =
-      await this.userModel.create({
-        firstName:
-          registerInput.firstName.trim(),
+      const role = (input as CreateUserInput).role ?? UserRole.MEMBER;
+      const bio = (input as CreateUserInput).bio ?? null;
+      const avatar = (input as CreateUserInput).avatar ?? null;
+      const employeeId =
+        input.employeeId?.trim() ||
+        `EMP-${Math.floor(1000 + Math.random() * 9000)}`;
 
-        lastName:
-          registerInput.lastName.trim(),
-
+      const user = await this.userModel.create({
+        firstName,
+        lastName,
         fullName,
-
         email,
-
-        password:
-          hashedPassword,
-
-        phoneNumber:
-          registerInput.phoneNumber,
-
-        role: undefined,
-        employeeId: registerInput.employeeId
-      });
-
-    return user;
-  }
-
-  async findAll(
-    input: UsersInput,
-  ): Promise<PaginatedUsersEntity> {
-    const {
-      page = 1,
-      limit = 10,
-      search,
-      sortBy = UserSortField.CREATED_AT,
-      sortOrder = SortOrder.DESC,
-    } = input;
-
-    const skip =
-      (page - 1) * limit;
-
-    const filter: any =
-    {
-      isDeleted: false,
-    };
-
-    if (search?.trim()) {
-      filter.$or = [
-        {
-          fullName: {
-            $regex: search,
-            $options: 'i',
-          },
-        },
-        {
-          email: {
-            $regex: search,
-            $options: 'i',
-          },
-        },
-        {
-          phoneNumber: {
-            $regex: search,
-            $options: 'i',
-          },
-        },
-      ];
-    }
-
-    const [users, total] =
-      await Promise.all([
-        this.userModel
-          .find(filter)
-          .sort({
-            [sortBy]:
-              sortOrder ===
-                SortOrder.ASC
-                ? 1
-                : -1,
-          })
-          .skip(skip)
-          .limit(limit),
-
-        this.userModel.countDocuments(
-          filter,
-        ),
-      ]);
-    console.log({
-      filter, users
-    })
-
-    return {
-      items: users,
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(
-          total / limit,
-        ),
-      },
-    };
-  }
-
-
-  async findById(
-    id: string,
-  ): Promise<User> {
-    const user =
-      await this.userModel.findOne({
-        _id: id,
+        password: hashedPassword,
+        phoneNumber: input.phoneNumber?.trim() || null,
+        role,
+        bio,
+        avatar,
+        employeeId,
+        isActive: true,
+        isEmailVerified: false,
         isDeleted: false,
       });
 
-    if (!user) {
-      throw new NotFoundException(
-        'User not found',
-      );
-    }
+      return user;
+    } catch (error) {
+      if (
+        error instanceof ConflictException ||
+        error instanceof ForbiddenException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
 
-    return user;
+      throw new InternalServerErrorException(USER_ERRORS.DATABASE_ERROR);
+    }
   }
 
-  async update(
-    id: string,
-    input: UpdateUserInput,
-  ): Promise<User> {
-    const user =
-      await this.findById(id);
+  async findAll(input: UsersInput): Promise<PaginatedUsersEntity> {
+    try {
+      const {
+        page = 1,
+        limit = 10,
+        search,
+        role,
+        isActive,
+        sortBy = UserSortField.CREATED_AT,
+        sortOrder = SortOrder.DESC,
+      } = input;
 
-    const updatePayload: Partial<User> =
-    {
-      ...input,
-    };
+      const skip = (page - 1) * limit;
 
-    const firstName =
-      input.firstName ??
-      user.firstName;
+      const filter: Record<string, any> = {
+        isDeleted: false,
+      };
 
-    const lastName =
-      input.lastName ??
-      user.lastName;
+      if (role) {
+        filter.role = role.toLowerCase();
+      }
 
-    updatePayload.fullName =
-      `${firstName} ${lastName}`;
+      if (typeof isActive === 'boolean') {
+        filter.isActive = isActive;
+      }
 
-    const updatedUser =
-      await this.userModel.findByIdAndUpdate(
-        id,
-        updatePayload,
-        {
-          new: true,
+      if (search?.trim()) {
+        const trimmedSearch = search.trim();
+        filter.$or = [
+          {
+            fullName: {
+              $regex: trimmedSearch,
+              $options: 'i',
+            },
+          },
+          {
+            email: {
+              $regex: trimmedSearch,
+              $options: 'i',
+            },
+          },
+          {
+            phoneNumber: {
+              $regex: trimmedSearch,
+              $options: 'i',
+            },
+          },
+        ];
+      }
+
+      const [users, total] = (await Promise.all([
+        this.userModel
+          .find(filter)
+          .sort({
+            [sortBy]: sortOrder === SortOrder.ASC ? 1 : -1,
+          })
+          .skip(skip)
+          .limit(limit)
+          .exec(),
+
+        this.userModel.countDocuments(filter).exec(),
+      ])) as [User[], number];
+
+      return {
+        items: users as any,
+        meta: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit) || 1,
         },
-      );
-
-    if (!updatedUser) {
-      throw new NotFoundException(
-        'User not found',
-      );
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(USER_ERRORS.DATABASE_ERROR);
     }
-
-    return updatedUser;
   }
-  async softDelete(
-    id: string,
-  ): Promise<boolean> {
-    const user =
-      await this.findById(id);
 
-    await this.userModel.findByIdAndUpdate(
-      user._id,
-      {
+  async findById(id: string): Promise<User> {
+    try {
+      const user = await this.userModel.findOne({
+        _id: id,
+        isDeleted: false,
+      }).exec();
+
+      if (!user) {
+        throw new NotFoundException(USER_ERRORS.NOT_FOUND);
+      }
+
+      return user;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException(USER_ERRORS.DATABASE_ERROR);
+    }
+  }
+
+  async update(id: string, input: UpdateUserInput): Promise<User> {
+    try {
+      const user = await this.findById(id);
+
+      const updatePayload: Partial<User> = {
+        ...input,
+      };
+
+      if (input.role) {
+        updatePayload.role = input.role.toLowerCase() as UserRole;
+      }
+
+      const firstName = input.firstName ?? user.firstName;
+      const lastName = input.lastName ?? user.lastName;
+
+      updatePayload.fullName = `${firstName} ${lastName}`.trim();
+
+      const updatedUser = await this.userModel
+        .findByIdAndUpdate(id, updatePayload, {
+          new: true,
+        })
+        .exec();
+
+      if (!updatedUser) {
+        throw new NotFoundException(USER_ERRORS.NOT_FOUND);
+      }
+
+      return updatedUser;
+    } catch (error) {
+      if (
+        error instanceof ForbiddenException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException(USER_ERRORS.DATABASE_ERROR);
+    }
+  }
+
+  async softDelete(id: string): Promise<boolean> {
+    try {
+      const user = (await this.findById(id)) as any;
+
+      await this.userModel.findByIdAndUpdate(user._id, {
         isDeleted: true,
         deletedAt: new Date(),
-      },
-    );
+      }).exec();
 
-    return true;
+      return true;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException(USER_ERRORS.DATABASE_ERROR);
+    }
+  }
+
+  async restoreUser(id: string): Promise<boolean> {
+    try {
+      const user = (await this.userModel.findOne({
+        _id: id,
+      }).exec()) as any;
+
+      if (!user) {
+        throw new NotFoundException(USER_ERRORS.NOT_FOUND);
+      }
+
+      if (!user.isDeleted) {
+        throw new ConflictException(USER_ERRORS.USER_ALREADY_ACTIVE);
+      }
+
+      await this.userModel.findByIdAndUpdate(user._id, {
+        isDeleted: false,
+        deletedAt: null,
+      }).exec();
+
+      return true;
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ConflictException
+      ) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException(USER_ERRORS.DATABASE_ERROR);
+    }
   }
 }

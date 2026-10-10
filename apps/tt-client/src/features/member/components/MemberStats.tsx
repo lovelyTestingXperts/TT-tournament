@@ -15,43 +15,36 @@ type MemberStatsProps = {
   members: Member[];
 };
 
-export default function MemberStats({
-  members,
-}: MemberStatsProps) {
+export default function MemberStats({ members }: MemberStatsProps) {
   const stats = [
     {
       title: 'Total Users',
       value: members.length,
       icon: Users,
+      color: 'from-primary/20 to-primary/5 text-primary border-primary/30',
     },
-
     {
-      title: 'Players',
-      value: members.filter((member) =>
-        member.role.includes('player')
-      ).length,
+      title: 'Active Players',
+      value: members.filter((member) => member.role?.includes('player')).length,
       icon: Trophy,
+      color: 'from-amber-500/20 to-amber-500/5 text-amber-400 border-amber-500/30',
     },
-
     {
       title: 'Referees',
-      value: members.filter((member) =>
-        member.role.includes('referee')
-      ).length,
+      value: members.filter((member) => member.role?.includes('referee')).length,
       icon: Shield,
+      color: 'from-rose-500/20 to-rose-500/5 text-rose-400 border-rose-500/30',
     },
-
     {
-      title: 'Active Users',
-      value: members.filter(
-        (member) => member.isActive
-      ).length,
+      title: 'Active Accounts',
+      value: members.filter((member) => member.isActive).length,
       icon: UserCheck,
+      color: 'from-emerald-500/20 to-emerald-500/5 text-emerald-400 border-emerald-500/30',
     },
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {stats.map((item) => {
         const Icon = item.icon;
 
@@ -59,31 +52,43 @@ export default function MemberStats({
           <div
             key={item.title}
             className="
-              rounded-3xl
-              border border-white/10
-              bg-white/5
+              glass-card
+              group
+              relative
+              overflow-hidden
               p-5
-              backdrop-blur-xl
+              transition-all
+              duration-200
+              hover:-translate-y-0.5
+              hover:border-white/[0.16]
             "
           >
-            <div className="flex items-start justify-between">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-zinc-400">
+                <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
                   {item.title}
                 </p>
 
-                <h3 className="mt-2 text-3xl font-bold text-white">
+                <h3 className="mt-2 text-2xl font-bold tracking-tight text-white">
                   {item.value}
                 </h3>
               </div>
 
               <div
-                className="
-                  rounded-2xl
-                  bg-red-500/10
-                  p-3
-                  text-red-400
-                "
+                className={`
+                  flex
+                  size-11
+                  items-center
+                  justify-center
+                  rounded-panel
+                  border
+                  bg-gradient-to-br
+                  shadow-sm
+                  transition-transform
+                  duration-200
+                  group-hover:scale-110
+                  ${item.color}
+                `}
               >
                 <Icon className="size-5" />
               </div>

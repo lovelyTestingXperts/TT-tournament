@@ -1,0 +1,155 @@
+<mxfile version="21.0.0">
+  <diagram id="auth-flow" name="POST /auth/login">
+    <mxGraphModel dx="1200" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="lane1" value="Client / API Gateway" style="shape=swimlane;horizontal=0;startSize=20;fillColor=#E6F1FB;fontColor=#0C447C;strokeColor=#0C447C;" vertex="1" parent="1">
+          <mxGeometry x="0" y="0" width="180" height="960" as="geometry"/>
+        </mxCell>
+        <mxCell id="lane2" value="Middleware / Guards" style="shape=swimlane;horizontal=0;startSize=20;fillColor=#EAF3DE;fontColor=#27500A;strokeColor=#27500A;" vertex="1" parent="1">
+          <mxGeometry x="190" y="0" width="180" height="960" as="geometry"/>
+        </mxCell>
+        <mxCell id="lane3" value="Controller layer" style="shape=swimlane;horizontal=0;startSize=20;fillColor=#EEEDFE;fontColor=#3C3489;strokeColor=#3C3489;" vertex="1" parent="1">
+          <mxGeometry x="380" y="0" width="180" height="960" as="geometry"/>
+        </mxCell>
+        <mxCell id="lane4" value="Service layer" style="shape=swimlane;horizontal=0;startSize=20;fillColor=#E1F5EE;fontColor=#085041;strokeColor=#085041;" vertex="1" parent="1">
+          <mxGeometry x="570" y="0" width="180" height="960" as="geometry"/>
+        </mxCell>
+        <mxCell id="lane5" value="Repository / Data-access" style="shape=swimlane;horizontal=0;startSize=20;fillColor=#FAEEDA;fontColor=#633806;strokeColor=#633806;" vertex="1" parent="1">
+          <mxGeometry x="760" y="0" width="180" height="960" as="geometry"/>
+        </mxCell>
+        <mxCell id="lane6" value="Database" style="shape=swimlane;horizontal=0;startSize=20;fillColor=#FAEEDA;fontColor=#412402;strokeColor=#412402;" vertex="1" parent="1">
+          <mxGeometry x="950" y="0" width="180" height="960" as="geometry"/>
+        </mxCell>
+        <mxCell id="lane7" value="Error / exception paths" style="shape=swimlane;horizontal=0;startSize=20;fillColor=#FCEBEB;fontColor=#791F1F;strokeColor=#791F1F;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="0" width="180" height="960" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="start" value="POST /auth/login request" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E6F1FB;fontColor=#0C447C;strokeColor=#0C447C;" vertex="1" parent="1">
+          <mxGeometry x="20" y="80" width="140" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="validation" value="ValidationPipe" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAF3DE;fontColor=#27500A;strokeColor=#27500A;" vertex="1" parent="1">
+          <mxGeometry x="210" y="80" width="140" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="dtoDecision" value="DTO validation passes?" style="shape=mxgraph.misc.diamond;whiteSpace=wrap;html=1;fillColor=#EAF3DE;fontColor=#27500A;strokeColor=#27500A;" vertex="1" parent="1">
+          <mxGeometry x="210" y="180" width="140" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="controller" value="AuthController.login() (assumed)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EEEDFE;fontColor=#3C3489;strokeColor=#3C3489;" vertex="1" parent="1">
+          <mxGeometry x="400" y="120" width="140" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="service" value="AuthService.login() (assumed)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E1F5EE;fontColor=#085041;strokeColor=#085041;" vertex="1" parent="1">
+          <mxGeometry x="590" y="120" width="140" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="repository" value="UsersService.findOne({ email }) / userModel.findOne()" style="shape=cylinder;whiteSpace=wrap;html=1;fillColor=#FAEEDA;fontColor=#633806;strokeColor=#633806;" vertex="1" parent="1">
+          <mxGeometry x="780" y="120" width="140" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="database" value="MongoDB users collection" style="shape=cylinder;whiteSpace=wrap;html=1;fillColor=#FAEEDA;fontColor=#412402;strokeColor=#412402;" vertex="1" parent="1">
+          <mxGeometry x="970" y="120" width="140" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="userDecision" value="User found in database?" style="shape=mxgraph.misc.diamond;whiteSpace=wrap;html=1;fillColor=#E1F5EE;fontColor=#085041;strokeColor=#085041;" vertex="1" parent="1">
+          <mxGeometry x="590" y="260" width="140" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="bcrypt" value="bcrypt.compare(password, user.password)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E1F5EE;fontColor=#085041;strokeColor=#085041;" vertex="1" parent="1">
+          <mxGeometry x="590" y="360" width="140" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="passwordDecision" value="Password matches?" style="shape=mxgraph.misc.diamond;whiteSpace=wrap;html=1;fillColor=#E1F5EE;fontColor=#085041;strokeColor=#085041;" vertex="1" parent="1">
+          <mxGeometry x="590" y="460" width="140" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="jwt" value="JwtService.sign() / token generation" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E1F5EE;fontColor=#085041;strokeColor=#085041;" vertex="1" parent="1">
+          <mxGeometry x="590" y="560" width="140" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="tokenDecision" value="Token generation successful?" style="shape=mxgraph.misc.diamond;whiteSpace=wrap;html=1;fillColor=#E1F5EE;fontColor=#085041;strokeColor=#085041;" vertex="1" parent="1">
+          <mxGeometry x="590" y="660" width="140" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="response" value="Response payload mapping" style="shape=mxgraph.flowchart.input_output;whiteSpace=wrap;html=1;fillColor=#E6F1FB;fontColor=#0C447C;strokeColor=#0C447C;" vertex="1" parent="1">
+          <mxGeometry x="20" y="780" width="140" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="end" value="200 OK response" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E6F1FB;fontColor=#0C447C;strokeColor=#0C447C;" vertex="1" parent="1">
+          <mxGeometry x="20" y="880" width="140" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="badRequest" value="BadRequestException → 400" style="shape=hexagon;whiteSpace=wrap;html=1;fillColor=#FCEBEB;fontColor=#791F1F;strokeColor=#791F1F;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="220" width="140" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="unauthorized" value="UnauthorizedException → 401" style="shape=hexagon;whiteSpace=wrap;html=1;fillColor=#FCEBEB;fontColor=#791F1F;strokeColor=#791F1F;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="380" width="140" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="internalError" value="InternalServerErrorException → 500" style="shape=hexagon;whiteSpace=wrap;html=1;fillColor=#FCEBEB;fontColor=#791F1F;strokeColor=#791F1F;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="560" width="140" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="edge1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;orthogonalLoop=1;" edge="1" source="start" target="validation" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;orthogonalLoop=1;" edge="1" source="validation" target="dtoDecision" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge3" value="yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;orthogonalLoop=1;fontColor=#27500A;" edge="1" source="dtoDecision" target="controller" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge4" value="no" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;orthogonalLoop=1;fontColor=#791F1F;" edge="1" source="dtoDecision" target="badRequest" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge5" value="LoginDto" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;orthogonalLoop=1;fontColor=#085041;" edge="1" source="controller" target="service" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge6" value="email" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;orthogonalLoop=1;fontColor=#633806;" edge="1" source="service" target="repository" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge7" value="findOne({ email })" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;orthogonalLoop=1;fontColor=#633806;" edge="1" source="repository" target="database" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge8" value="User Document | null" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;orthogonalLoop=1;fontColor=#085041;" edge="1" source="database" target="userDecision" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge9" value="no" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;orthogonalLoop=1;fontColor=#791F1F;" edge="1" source="userDecision" target="unauthorized" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge10" value="yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;orthogonalLoop=1;fontColor=#085041;" edge="1" source="userDecision" target="bcrypt" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge11" value="bcrypt.compare" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;orthogonalLoop=1;fontColor=#085041;" edge="1" source="bcrypt" target="passwordDecision" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge12" value="no" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;orthogonalLoop=1;fontColor=#791F1F;" edge="1" source="passwordDecision" target="unauthorized" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge13" value="yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;orthogonalLoop=1;fontColor=#085041;" edge="1" source="passwordDecision" target="jwt" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge14" value="JWT payload" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;orthogonalLoop=1;fontColor=#085041;" edge="1" source="jwt" target="tokenDecision" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge15" value="no" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;orthogonalLoop=1;fontColor=#791F1F;" edge="1" source="tokenDecision" target="internalError" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge16" value="yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;orthogonalLoop=1;fontColor=#085041;" edge="1" source="tokenDecision" target="response" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge17" value="JWT string" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;orthogonalLoop=1;fontColor=#0C447C;" edge="1" source="response" target="end" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge18" value="DB connection failure" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;orthogonalLoop=1;fontColor=#791F1F;" edge="1" source="database" target="internalError" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

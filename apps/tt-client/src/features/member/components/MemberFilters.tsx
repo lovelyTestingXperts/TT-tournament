@@ -1,4 +1,4 @@
-import { Search } from 'lucide-react';
+import { RotateCcw, Search } from 'lucide-react';
 
 import Input from '@/components/ui/input/Input';
 import Button from '@/components/ui/button/Button';
@@ -9,22 +9,10 @@ type MemberFilterProps = {
   status?: string;
   sort?: string;
 
-  onSearchChange: (
-    value: string
-  ) => void;
-
-  onRoleChange: (
-    value?: string
-  ) => void;
-
-  onStatusChange: (
-    value?: string
-  ) => void;
-
-  onSortChange: (
-    value?: string
-  ) => void;
-
+  onSearchChange: (value: string) => void;
+  onRoleChange: (value?: string) => void;
+  onStatusChange: (value?: string) => void;
+  onSortChange: (value?: string) => void;
   onReset: () => void;
 };
 
@@ -33,150 +21,124 @@ export default function MemberFilter({
   role,
   status,
   sort,
-
   onSearchChange,
   onRoleChange,
   onStatusChange,
   onSortChange,
-
   onReset,
 }: MemberFilterProps) {
   return (
-    <div
-      className="
-        rounded-3xl
-        border border-white/10
-        bg-white/5
-        p-5
-        backdrop-blur-xl
-      "
-    >
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
-        {/* search */}
+    <div className="glass-card p-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+        {/* Search */}
         <div className="relative flex-1">
-          <Search
-            className="
-              absolute left-3 top-1/2
-              size-4
-              -translate-y-1/2
-              text-zinc-500
-            "
-          />
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
 
           <Input
             value={search}
-            onChange={(e) =>
-              onSearchChange(
-                e.target.value
-              )
-            }
+            onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search by name, email or phone..."
-            className="pl-10"
+            className="pl-10 h-10 text-sm"
           />
         </div>
 
-        {/* role */}
-        <select
-          value={role ?? ''}
-          onChange={(e) =>
-            onRoleChange(
-              e.target.value || undefined
-            )
-          }
-          className="
-            h-11 rounded-xl
-            border border-white/10
-            bg-black/40 px-4
-            text-sm text-zinc-200
-            outline-none
-          "
-        >
-          <option value="">
-            All Roles
-          </option>
+        {/* Filter Controls */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* Role Filter */}
+          <select
+            value={role ?? ''}
+            onChange={(e) => onRoleChange(e.target.value || undefined)}
+            className="
+              h-10
+              rounded-button
+              border
+              border-white/[0.09]
+              bg-surface-850/90
+              px-3.5
+              text-sm
+              font-medium
+              text-slate-200
+              outline-none
+              transition-all
+              hover:border-white/[0.18]
+              focus:border-primary
+              focus:ring-2
+              focus:ring-primary/20
+            "
+          >
+            <option value="" className="bg-surface-900 text-slate-300">All Roles</option>
+            <option value="ADMIN" className="bg-surface-900 text-slate-300">Admin</option>
+            <option value="REFEREE" className="bg-surface-900 text-slate-300">Referee</option>
+            <option value="PLAYER" className="bg-surface-900 text-slate-300">Player</option>
+            <option value="MEMBER" className="bg-surface-900 text-slate-300">Member</option>
+          </select>
 
-          <option value="ADMIN">
-            Admin
-          </option>
+          {/* Status Filter */}
+          <select
+            value={status ?? ''}
+            onChange={(e) => onStatusChange(e.target.value || undefined)}
+            className="
+              h-10
+              rounded-button
+              border
+              border-white/[0.09]
+              bg-surface-850/90
+              px-3.5
+              text-sm
+              font-medium
+              text-slate-200
+              outline-none
+              transition-all
+              hover:border-white/[0.18]
+              focus:border-primary
+              focus:ring-2
+              focus:ring-primary/20
+            "
+          >
+            <option value="" className="bg-surface-900 text-slate-300">All Status</option>
+            <option value="ACTIVE" className="bg-surface-900 text-slate-300">Active</option>
+            <option value="INACTIVE" className="bg-surface-900 text-slate-300">Inactive</option>
+          </select>
 
-          <option value="REFEREE">
-            Referee
-          </option>
+          {/* Sort Filter */}
+          <select
+            value={sort ?? ''}
+            onChange={(e) => onSortChange(e.target.value || undefined)}
+            className="
+              h-10
+              rounded-button
+              border
+              border-white/[0.09]
+              bg-surface-850/90
+              px-3.5
+              text-sm
+              font-medium
+              text-slate-200
+              outline-none
+              transition-all
+              hover:border-white/[0.18]
+              focus:border-primary
+              focus:ring-2
+              focus:ring-primary/20
+            "
+          >
+            <option value="NEWEST" className="bg-surface-900 text-slate-300">Newest First</option>
+            <option value="OLDEST" className="bg-surface-900 text-slate-300">Oldest First</option>
+            <option value="NAME_ASC" className="bg-surface-900 text-slate-300">Name A-Z</option>
+            <option value="NAME_DESC" className="bg-surface-900 text-slate-300">Name Z-A</option>
+          </select>
 
-          <option value="PLAYER">
-            Player
-          </option>
-
-          <option value="MEMBER">
-            Member
-          </option>
-        </select>
-
-        {/* status */}
-        <select
-          value={status ?? ''}
-          onChange={(e) =>
-            onStatusChange(
-              e.target.value || undefined
-            )
-          }
-          className="
-            h-11 rounded-xl
-            border border-white/10
-            bg-black/40 px-4
-            text-sm text-zinc-200
-            outline-none
-          "
-        >
-          <option value="">
-            All Status
-          </option>
-
-          <option value="ACTIVE">
-            Active
-          </option>
-
-          <option value="INACTIVE">
-            Inactive
-          </option>
-        </select>
-
-        {/* sort */}
-        <select
-          value={sort ?? ''}
-          onChange={(e) =>
-            onSortChange(
-              e.target.value || undefined
-            )
-          }
-          className="
-            h-11 rounded-xl
-            border border-white/10
-            bg-black/40 px-4
-            text-sm text-zinc-200
-            outline-none
-          "
-        >
-          <option value="NEWEST">
-            Newest First
-          </option>
-
-          <option value="OLDEST">
-            Oldest First
-          </option>
-
-          <option value="NAME_ASC">
-            Name A-Z
-          </option>
-
-          <option value="NAME_DESC">
-            Name Z-A
-          </option>
-        </select>
-
-        <Button onClick={onReset}>
-          Reset
-        </Button>
+          {/* Reset button */}
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={onReset}
+            className="gap-1.5 px-3.5"
+          >
+            <RotateCcw className="size-3.5" />
+            <span>Reset</span>
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import {
 } from '@nestjs/graphql';
 
 import {
+  IsBoolean,
   IsEnum,
   IsOptional,
   IsString,
@@ -12,8 +13,8 @@ import {
 } from 'class-validator';
 
 import { SortOrder } from '../enums/sort-order.enum';
-
 import { UserSortField } from '../enums/user-sort-field.enum';
+import { UserRole } from '../../../shared/enums/user-role.enum';
 
 @InputType()
 export class UsersInput {
@@ -38,23 +39,33 @@ export class UsersInput {
   @IsString()
   search?: string;
 
+  @Field(() => UserRole, {
+    nullable: true,
+  })
+  @IsOptional()
+  @IsEnum(UserRole)
+  role?: UserRole;
+
+  @Field(() => Boolean, {
+    nullable: true,
+  })
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
+
   @Field(() => UserSortField, {
     nullable: true,
-    defaultValue:
-      UserSortField.CREATED_AT,
+    defaultValue: UserSortField.CREATED_AT,
   })
   @IsOptional()
   @IsEnum(UserSortField)
-  sortBy?: UserSortField =
-    UserSortField.CREATED_AT;
+  sortBy?: UserSortField = UserSortField.CREATED_AT;
 
   @Field(() => SortOrder, {
     nullable: true,
-    defaultValue:
-      SortOrder.DESC,
+    defaultValue: SortOrder.DESC,
   })
   @IsOptional()
   @IsEnum(SortOrder)
-  sortOrder?: SortOrder =
-    SortOrder.DESC;
+  sortOrder?: SortOrder = SortOrder.DESC;
 }

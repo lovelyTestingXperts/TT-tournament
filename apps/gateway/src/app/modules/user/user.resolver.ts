@@ -5,8 +5,7 @@ import {
   Resolver,
 } from '@nestjs/graphql';
 
-import { RegisterInput } from '../auth/dto/register.input';
-
+import { CreateUserInput } from './dto/create-user.input';
 import { UpdateUserInput } from './dto/update-user.input';
 import { UsersInput } from './dto/users.input';
 import { UserEntity } from './entity/user.entity';
@@ -23,12 +22,10 @@ export class UsersResolver {
     name: 'createUser',
   })
   async createUser(
-    @Args('registerInput')
-    registerInput: RegisterInput,
+    @Args('input')
+    input: CreateUserInput,
   ): Promise<UserEntity> {
-    return this.usersService.create(
-      registerInput,
-    );
+    return this.usersService.create(input);
   }
 
   @Query(() => PaginatedUsersEntity, {
@@ -52,9 +49,7 @@ export class UsersResolver {
     @Args('id')
     id: string,
   ): Promise<UserEntity> {
-    return this.usersService.findById(
-      id,
-    );
+    return this.usersService.findById(id);
   }
 
   @Mutation(() => UserEntity, {
@@ -80,8 +75,16 @@ export class UsersResolver {
     @Args('id')
     id: string,
   ): Promise<boolean> {
-    return this.usersService.softDelete(
-      id,
-    );
+    return this.usersService.softDelete(id);
+  }
+
+  @Mutation(() => Boolean, {
+    name: 'restoreUser',
+  })
+  async restoreUser(
+    @Args('id')
+    id: string,
+  ): Promise<boolean> {
+    return this.usersService.restoreUser(id);
   }
 }

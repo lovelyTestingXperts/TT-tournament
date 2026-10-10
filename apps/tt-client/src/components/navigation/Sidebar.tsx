@@ -5,9 +5,7 @@ import {
   Trophy,
   Users,
 } from 'lucide-react';
-import {
-  useState,
-} from 'react';
+import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 
 import AppLogo from './AppLogo';
@@ -16,153 +14,147 @@ const menuItems = [
   {
     label: 'Dashboard',
     path: '/',
-    icon: (
-      <LayoutDashboard
-        size={20}
-      />
-    ),
+    icon: <LayoutDashboard size={19} />,
   },
   {
     label: 'Tournaments',
     path: '/tournaments',
-    icon: (
-      <Trophy size={20} />
-    ),
+    icon: <Trophy size={19} />,
   },
   {
     label: 'Matches',
     path: '/matches',
-    icon: (
-      <Calendar size={20} />
-    ),
+    icon: <Calendar size={19} />,
   },
   {
     label: 'Members',
     path: '/members',
-    icon: (
-      <Users size={20} />
-    ),
+    icon: <Users size={19} />,
   },
 ];
 
 export default function Sidebar() {
-  const [collapsed, setCollapsed] =
-    useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
     <aside
       className={`
-      glass-card
-      sticky
-      top-0
+      glass-sidebar
+      relative
       flex
       h-full
       shrink-0
       flex-col
-      rounded-[36px]
-      p-5
       transition-all
       duration-300
-      ${
-        collapsed
-          ? 'w-[96px]'
-          : 'w-[280px]'
-      }
+      ease-in-out
+      ${collapsed ? 'w-[78px]' : 'w-[260px]'}
       `}
     >
-      {/* Header */}
+      {/* Header with Logo */}
       <div
         className={`
         flex
+        h-20
         items-center
-        ${
-          collapsed
-            ? 'justify-center'
-            : 'justify-between'
-        }
+        border-b
+        border-white/[0.06]
+        px-4
+        ${collapsed ? 'justify-center' : 'justify-between'}
         `}
       >
-        {!collapsed && (
-          <AppLogo />
-        )}
+        {!collapsed && <AppLogo />}
 
         <button
-          onClick={() =>
-            setCollapsed(
-              !collapsed
-            )
-          }
+          onClick={() => setCollapsed(!collapsed)}
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           className="
           flex
-          h-10
-          w-10
+          h-8
+          w-8
           items-center
           justify-center
-          rounded-xl
-          bg-white/10
-          transition
-          hover:bg-white/20
+          rounded-lg
+          border
+          border-white/[0.08]
+          bg-white/[0.04]
+          text-slate-400
+          transition-all
+          hover:border-primary/40
+          hover:bg-primary/10
+          hover:text-white
           "
         >
           <ChevronLeft
-            size={18}
+            size={16}
             className={`
               transition-transform
               duration-300
-              ${
-                collapsed
-                  ? 'rotate-180'
-                  : ''
-              }
+              ${collapsed ? 'rotate-180' : ''}
             `}
           />
         </button>
       </div>
 
-      {/* Menu */}
-      <div className="mt-10 space-y-2">
-        {menuItems.map(
-          (item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({
-                isActive,
-              }) =>
-                `
-                flex
-                items-center
-                gap-3
-                rounded-2xl
-                px-4
-                py-4
-                transition-all
-                ${
-                  isActive
-                    ? 'bg-white/15 text-white'
-                    : 'text-white/60 hover:bg-white/10 hover:text-white'
-                }
-                ${
-                  collapsed
-                    ? 'justify-center'
-                    : ''
-                }
-                `
+      {/* Nav Menu Items */}
+      <nav className="flex-1 space-y-1.5 p-3">
+        {menuItems.map((item) => (
+          <NavLink
+            key={item.path}
+            to={item.path}
+            className={({ isActive }) =>
+              `
+              group
+              relative
+              flex
+              items-center
+              gap-3.5
+              rounded-panel
+              px-3.5
+              py-3
+              text-sm
+              font-medium
+              transition-all
+              duration-200
+              ${
+                isActive
+                  ? 'bg-gradient-to-r from-primary/25 via-primary/15 to-transparent text-white border-l-2 border-primary shadow-[0_0_20px_rgba(230,0,38,0.25)]'
+                  : 'text-slate-400 hover:bg-white/[0.05] hover:text-slate-200'
               }
-            >
-              {item.icon}
-
-              {!collapsed && (
-                <span>
-                  {
-                    item.label
-                  }
+              ${collapsed ? 'justify-center px-0' : ''}
+              `
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <span
+                  className={`
+                  transition-colors
+                  duration-200
+                  ${isActive ? 'text-primary' : 'text-slate-400 group-hover:text-slate-200'}
+                `}
+                >
+                  {item.icon}
                 </span>
-              )}
-            </NavLink>
-          )
-        )}
-      </div>
+
+                {!collapsed && (
+                  <span className="tracking-wide">{item.label}</span>
+                )}
+              </>
+            )}
+          </NavLink>
+        ))}
+      </nav>
+
+      {/* Footer subtle brand indicator */}
+      {!collapsed && (
+        <div className="border-t border-white/[0.06] p-4 text-xs text-slate-500">
+          <div className="flex items-center gap-2">
+            <span className="size-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+            <span>Server Online</span>
+          </div>
+        </div>
+      )}
     </aside>
   );
 }

@@ -1,216 +1,225 @@
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
 
 import Button from '@/components/ui/button/Button';
 import Input from '@/components/ui/input/Input';
 import Textarea from '@/components/ui/input/TextArea';
+import { useUpdateUser } from '@/features/member/graphql/hooks';
 
 const editMemberSchema = z.object({
   firstName: z.string().min(2, 'First name is required'),
-
   lastName: z.string().min(2, 'Last name is required'),
-
-  email: z.email('Please enter a valid email'),
-
   phoneNumber: z.string().optional(),
-
   bio: z.string().optional(),
-
   avatar: z.string().optional(),
-
-  role: z.enum(['admin', 'referee', 'player', 'member']),
-
+  role: z.enum(['ADMIN', 'REFEREE', 'PLAYER', 'MEMBER']),
   isActive: z.boolean(),
 });
 
 type EditMemberFormValues = z.infer<typeof editMemberSchema>;
 
-export default function MemberEditForm() {
+interface Props {
+  initialData?: any;
+  userId: string;
+}
+
+export default function MemberEditForm({ initialData, userId }: Props) {
+  const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const [updateUser, { loading }] = useUpdateUser();
+
   const form = useForm<EditMemberFormValues>({
     resolver: zodResolver(editMemberSchema),
-
     defaultValues: {
-      firstName: 'Lovely',
-      lastName: 'Singh',
-      email: 'lovely@test.com',
-      phoneNumber: '+91 9876543210',
-      bio: '',
-      avatar: '',
-      role: 'admin',
-      isActive: true,
+      firstName: initialData?.firstName || '',
+      lastName: initialData?.lastName || '',
+      phoneNumber: initialData?.phoneNumber || '',
+      bio: initialData?.bio || '',
+      avatar: initialData?.avatar || '',
+      role: (initialData?.role?.toUpperCase() as any) || 'MEMBER',
+      isActive: initialData?.isActive ?? true,
     },
   });
-
-  const onSubmit = (values: EditMemberFormValues) => {
-    console.log(values);
-
-    // graphql mutation later
-  };
 
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = form;
 
-  return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="
-        rounded-3xl
-        border border-white/10
-        bg-white/5
-        p-6
-        backdrop-blur-xl
-      "
-    >
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold text-white">
-          Profile Information
-        </h2>
+  useEffect(() => {
+    if (initialData) {
+      reset({
+        firstName: initialData.firstName || '',
+        lastName: initialData.lastName || '',
+        phoneNumber: initialData.phoneNumber || '',
+        bio: initialData.bio || '',
+        avatar: initialData.avatar || '',
+        role: (initialData.role?.toUpperCase() as any) || 'MEMBER',
+        isActive: initialData.isActive ?? true,
+      });
+    }
+  }, [initialData, reset]);
 
-        <p className="mt-1 text-sm text-zinc-400">
-          Update user profile, role and account status.
-        </p>
-      </div>
+  const onSubmit = async (values: EditMemberFormValues) => {
+    setErrorMessage(null);
+    try {
+      await updateUser({
+        variables: {
+          id: userId,
+          input: {
+            firstName: values.firstName,
+            lastName: values.lastName,
+            phoneNumber: values.phoneNumber || undefined,
+            avatar: values.avatar || undefined,
+            bio: values.bio || undefined,
+            role: values.role,
+            isActive: values.isActive,
+          },
+        },
+      });
+      navigate(`/members/${userId}`);
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Failed to update user.');
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="glass-card p-6 md:p-8">
+      {errorMessage && (
+        <div className="mb-6 flex items-center gap-3 rounded-panel border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
+          <AlertCircle className="size-5 shrink-0 text-red-400" />
+          <span>{errorMessage}</span>
+        </div>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2">
-        {/* first name */}
+        {/* First Name */}
         <div>
-          <label className="mb-2 block text-sm text-zinc-300">First Name</label>
-
-          <Input {...register('firstName')} placeholder="Enter first name" />
-
-          {errors.firstName && (
-            <p className="mt-2 text-sm text-red-400">
-              {errors.firstName.message}
-            </p>
-          )}
-        </div>
-
-        {/* last name */}
-        <div>
-          <label className="mb-2 block text-sm text-zinc-300">Last Name</label>
-
-          <Input {...register('lastName')} placeholder="Enter last name" />
-
-          {errors.lastName && (
-            <p className="mt-2 text-sm text-red-400">
-              {errors.lastName.message}
-            </p>
-          )}
-        </div>
-
-        {/* email */}
-        <div className="md:col-span-2">
-          <label className="mb-2 block text-sm text-zinc-300">Email</label>
-
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+            First Name <span className="text-primary">*</span>
+          </label>
           <Input
-            {...register('email')}
-            type="email"
-            placeholder="Enter email"
+            {...register('firstName')}
+            placeholder="First name"
+            error={errors.firstName?.message}
           />
-
-          {errors.email && (
-            <p className="mt-2 text-sm text-red-400">{errors.email.message}</p>
-          )}
         </div>
 
-        {/* phone */}
+        {/* Last Name */}
         <div>
-          <label className="mb-2 block text-sm text-zinc-300">
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+            Last Name <span className="text-primary">*</span>
+          </label>
+          <Input
+            {...register('lastName')}
+            placeholder="Last name"
+            error={errors.lastName?.message}
+          />
+        </div>
+
+        {/* Phone */}
+        <div>
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
             Phone Number
           </label>
-
-          <Input {...register('phoneNumber')} placeholder="+91 9876543210" />
+          <Input
+            {...register('phoneNumber')}
+            placeholder="+1 555-0199"
+            error={errors.phoneNumber?.message}
+          />
         </div>
 
-        {/* avatar */}
+        {/* Avatar URL */}
         <div>
-          <label className="mb-2 block text-sm text-zinc-300">Avatar URL</label>
-
-          <Input {...register('avatar')} placeholder="https://..." />
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+            Avatar URL
+          </label>
+          <Input
+            {...register('avatar')}
+            placeholder="https://..."
+            error={errors.avatar?.message}
+          />
         </div>
 
-        {/* role */}
+        {/* Role */}
         <div>
-          <label className="mb-2 block text-sm text-zinc-300">Role</label>
-
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+            Role
+          </label>
           <select
             {...register('role')}
             className="
-              h-11 w-full rounded-xl
-              border border-white/10
-              bg-black/40
-              px-4 text-sm
-              text-zinc-200
-              outline-none
+              h-10 w-full rounded-button
+              border border-white/[0.09]
+              bg-surface-850/90 px-3.5 text-sm
+              font-medium text-slate-200 outline-none
+              transition-all hover:border-white/[0.18]
+              focus:border-primary focus:ring-2 focus:ring-primary/20
             "
           >
-            <option value="admin">Admin</option>
-
-            <option value="referee">Referee</option>
-
-            <option value="player">Player</option>
-
-            <option value="member">Member</option>
+            <option value="MEMBER">Member (Audience)</option>
+            <option value="PLAYER">Player</option>
+            <option value="REFEREE">Referee</option>
+            <option value="ADMIN">Administrator</option>
           </select>
         </div>
 
-        {/* status */}
+        {/* Account Status */}
         <div>
-          <label className="mb-2 block text-sm text-zinc-300">Status</label>
-
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+            Account Status
+          </label>
           <select
             {...register('isActive', {
-              setValueAs: (v) => v === 'true',
+              setValueAs: (v) => v === 'true' || v === true,
             })}
             className="
-              h-11 w-full rounded-xl
-              border border-white/10
-              bg-black/40
-              px-4 text-sm
-              text-zinc-200
-              outline-none
+              h-10 w-full rounded-button
+              border border-white/[0.09]
+              bg-surface-850/90 px-3.5 text-sm
+              font-medium text-slate-200 outline-none
+              transition-all hover:border-white/[0.18]
+              focus:border-primary focus:ring-2 focus:ring-primary/20
             "
           >
             <option value="true">Active</option>
-
             <option value="false">Inactive</option>
           </select>
         </div>
 
-        {/* bio */}
+        {/* Bio */}
         <div className="md:col-span-2">
-          <label className="mb-2 block text-sm text-zinc-300">Bio</label>
-
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+            Bio / Notes
+          </label>
           <Textarea
             {...register('bio')}
             placeholder="Tell something about this user..."
-            className="min-h-[140px]"
+            className="min-h-[120px]"
           />
         </div>
       </div>
 
-      {/* actions */}
-      <div className="mt-8 flex justify-end gap-3">
+      {/* Action buttons */}
+      <div className="mt-8 flex items-center justify-end gap-3 border-t border-white/[0.07] pt-6">
         <Button
           type="button"
-          className="
-            rounded-xl
-          "
+          variant="secondary"
+          onClick={() => navigate(`/members/${userId}`)}
         >
           Cancel
         </Button>
 
-        <Button
-          type="submit"
-          className="
-            rounded-xl
-          "
-        >
-          Save Changes
+        <Button type="submit" variant="primary" loading={loading}>
+          <CheckCircle2 className="size-4" />
+          <span>Save Changes</span>
         </Button>
       </div>
     </form>

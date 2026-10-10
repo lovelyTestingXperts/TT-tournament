@@ -74,6 +74,16 @@
             "buildTarget": "@org/gateway:build:production"
           }
         }
+      },
+      "test": {
+        "executor": "@nx/jest:jest",
+        "outputs": [
+          "{workspaceRoot}/apps/gateway/test-output/jest/coverage"
+        ],
+        "options": {
+          "jestConfig": "apps/gateway/jest.config.js",
+          "passWithNoTests": true
+        }
       }
     }
   },

@@ -9,12 +9,14 @@ import configuration from './shared/config/configuration';
 import { validateEnv } from './shared/config/env.validation';
 import { AppResolver } from './app.resolver';
 import { AuthModule } from './modules/auth/auth.module';
+import { TournamentModule } from './modules/tournament/tournament.module';
 import { UsersModule } from './modules/user/user.module';
 
 @Module({
   imports: [
     AuthModule,
     UsersModule,
+    TournamentModule,
     ConfigModule.forRoot({
       isGlobal: true,
       load: [configuration],

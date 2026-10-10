@@ -4,9 +4,13 @@ import {
 } from '@nestjs/graphql';
 
 import {
+  IsBoolean,
+  IsEnum,
   IsOptional,
   IsString,
 } from 'class-validator';
+
+import { UserRole } from '../../../shared/enums/user-role.enum';
 
 @InputType()
 export class UpdateUserInput {
@@ -44,4 +48,18 @@ export class UpdateUserInput {
   @IsOptional()
   @IsString()
   bio?: string;
+
+  @Field(() => UserRole, {
+    nullable: true,
+  })
+  @IsOptional()
+  @IsEnum(UserRole)
+  role?: UserRole;
+
+  @Field(() => Boolean, {
+    nullable: true,
+  })
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
 }

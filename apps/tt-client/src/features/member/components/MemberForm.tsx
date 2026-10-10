@@ -1,83 +1,48 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Eye, EyeOff, CheckCircle2, AlertCircle, ArrowLeft } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
-import Button  from '@/components/ui/button/Button';
-import Input  from '@/components/ui/input/Input';
-import Textarea  from '@/components/ui/input/TextArea';
+import Button from '@/components/ui/button/Button';
+import Input from '@/components/ui/input/Input';
+import Textarea from '@/components/ui/input/TextArea';
+import { useCreateUser } from '@/features/member/graphql/hooks';
 
 const memberSchema = z.object({
-  firstName: z
-    .string()
-    .min(2, 'Required'),
-
-  lastName: z
-    .string()
-    .min(2, 'Required'),
-
-  employeeId: z
-    .string()
-    .min(1, 'Required'),
-
-  email: z.email(
-    'Invalid email',
-  ),
-
-  password: z
-    .string()
-    .min(
-      6,
-      'Password must be at least 6 characters',
-    ),
-
-  phoneNumber:
-    z.string().optional(),
-
-  role: z.enum([
-    'admin',
-    'referee',
-    'player',
-    'member',
-  ]),
-
+  firstName: z.string().min(2, 'First name must be at least 2 characters'),
+  lastName: z.string().min(2, 'Last name must be at least 2 characters'),
+  employeeId: z.string().optional(),
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  phoneNumber: z.string().optional(),
+  role: z.enum(['ADMIN', 'REFEREE', 'PLAYER', 'MEMBER']),
   bio: z.string().optional(),
 });
 
-type MemberFormValues =
-  z.infer<
-    typeof memberSchema
-  >;
+type MemberFormValues = z.infer<typeof memberSchema>;
 
-interface Props {
-  mode?: 'create' | 'edit';
-}
+export default function MemberForm() {
+  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-export default function MemberForm({
-  mode = 'create',
-}: Props) {
-  const [showPassword,
-    setShowPassword] =
-    useState(false);
+  const [createUser, { loading }] = useCreateUser();
 
-  const form =
-    useForm<MemberFormValues>({
-      resolver: zodResolver(
-        memberSchema,
-      ),
-
-      defaultValues: {
-        firstName: '',
-        lastName: '',
-        employeeId: '',
-        email: '',
-        password: '',
-        phoneNumber: '',
-        role: 'member',
-        bio: '',
-      },
-    });
+  const form = useForm<MemberFormValues>({
+    resolver: zodResolver(memberSchema),
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      employeeId: '',
+      email: '',
+      password: '',
+      phoneNumber: '',
+      role: 'MEMBER',
+      bio: '',
+    },
+  });
 
   const {
     register,
@@ -85,203 +50,171 @@ export default function MemberForm({
     formState: { errors },
   } = form;
 
-  const onSubmit = (
-    values: MemberFormValues,
-  ) => {
-    console.log(values);
-
-    // graphql mutation
+  const onSubmit = async (values: MemberFormValues) => {
+    setErrorMessage(null);
+    try {
+      await createUser({
+        variables: {
+          input: {
+            firstName: values.firstName,
+            lastName: values.lastName,
+            email: values.email,
+            password: values.password,
+            phoneNumber: values.phoneNumber || undefined,
+            employeeId: values.employeeId || undefined,
+            role: values.role,
+            bio: values.bio || undefined,
+          },
+        },
+      });
+      navigate('/members');
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Failed to create user. Please try again.');
+    }
   };
 
   return (
-    <form
-      onSubmit={handleSubmit(
-        onSubmit,
+    <form onSubmit={handleSubmit(onSubmit)} className="glass-card p-6 md:p-8">
+      {errorMessage && (
+        <div className="mb-6 flex items-center gap-3 rounded-panel border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
+          <AlertCircle className="size-5 shrink-0 text-red-400" />
+          <span>{errorMessage}</span>
+        </div>
       )}
-      className="
-        rounded-3xl
-        border border-white/10
-        bg-white/5
-        p-6
-        backdrop-blur-xl
-      "
-    >
+
       <div className="grid gap-6 md:grid-cols-2">
-        {/* first name */}
+        {/* First Name */}
         <div>
-          <label className="mb-2 block text-sm text-zinc-300">
-            First Name
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+            First Name <span className="text-primary">*</span>
           </label>
-
           <Input
-            {...register(
-              'firstName',
-            )}
-            placeholder="John"
+            {...register('firstName')}
+            placeholder="Jane"
+            error={errors.firstName?.message}
           />
-
-          <p className="mt-1 text-sm text-red-400">
-            {
-              errors.firstName
-                ?.message
-            }
-          </p>
         </div>
 
-        {/* last name */}
+        {/* Last Name */}
         <div>
-          <label className="mb-2 block text-sm text-zinc-300">
-            Last Name
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+            Last Name <span className="text-primary">*</span>
           </label>
-
           <Input
-            {...register(
-              'lastName',
-            )}
+            {...register('lastName')}
             placeholder="Doe"
+            error={errors.lastName?.message}
           />
         </div>
 
-        {/* employee id */}
+        {/* Employee ID */}
         <div>
-          <label className="mb-2 block text-sm text-zinc-300">
-            Employee ID
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+            Employee ID (Optional)
           </label>
-
           <Input
-            {...register(
-              'employeeId',
-            )}
-            placeholder="EMP-001"
+            {...register('employeeId')}
+            placeholder="EMP-1024"
+            error={errors.employeeId?.message}
           />
         </div>
 
-        {/* role */}
+        {/* Role */}
         <div>
-          <label className="mb-2 block text-sm text-zinc-300">
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
             Role
           </label>
-
           <select
             {...register('role')}
             className="
-              h-11 w-full rounded-xl
-              border border-white/10
-              bg-black/40 px-4
-              text-zinc-200
+              h-10 w-full rounded-button
+              border border-white/[0.09]
+              bg-surface-850/90 px-3.5 text-sm
+              font-medium text-slate-200 outline-none
+              transition-all hover:border-white/[0.18]
+              focus:border-primary focus:ring-2 focus:ring-primary/20
             "
           >
-            <option value="member">
-              Member
-            </option>
-
-            <option value="player">
-              Player
-            </option>
-
-            <option value="referee">
-              Referee
-            </option>
-
-            <option value="admin">
-              Admin
-            </option>
+            <option value="MEMBER">Member (Audience)</option>
+            <option value="PLAYER">Player</option>
+            <option value="REFEREE">Referee</option>
+            <option value="ADMIN">Administrator</option>
           </select>
         </div>
 
-        {/* email */}
+        {/* Email */}
         <div className="md:col-span-2">
-          <label className="mb-2 block text-sm text-zinc-300">
-            Email
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+            Email Address <span className="text-primary">*</span>
           </label>
-
           <Input
-            {...register(
-              'email',
-            )}
-            placeholder="john@example.com"
+            {...register('email')}
+            type="email"
+            placeholder="jane.doe@example.com"
+            error={errors.email?.message}
           />
         </div>
 
-        {/* password */}
+        {/* Password */}
         <div className="md:col-span-2">
-          <label className="mb-2 block text-sm text-zinc-300">
-            Password
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+            Initial Password <span className="text-primary">*</span>
           </label>
-
           <div className="relative">
             <Input
-              {...register(
-                'password',
-              )}
-              type={
-                showPassword
-                  ? 'text'
-                  : 'password'
-              }
+              {...register('password')}
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Minimum 6 characters"
+              error={errors.password?.message}
             />
-
             <button
               type="button"
-              onClick={() =>
-                setShowPassword(
-                  !showPassword,
-                )
-              }
-              className="
-                absolute right-3
-                top-1/2
-                -translate-y-1/2
-                text-zinc-500
-              "
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3.5 top-3 text-slate-400 hover:text-white"
             >
-              {showPassword ? (
-                <EyeOff className="size-4" />
-              ) : (
-                <Eye className="size-4" />
-              )}
+              {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
             </button>
           </div>
         </div>
 
-        {/* phone */}
+        {/* Phone */}
         <div className="md:col-span-2">
-          <label className="mb-2 block text-sm text-zinc-300">
-            Phone Number
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+            Phone Number (Optional)
           </label>
-
           <Input
-            {...register(
-              'phoneNumber',
-            )}
-            placeholder="+91..."
+            {...register('phoneNumber')}
+            placeholder="+1 (555) 000-0000"
+            error={errors.phoneNumber?.message}
           />
         </div>
 
-        {/* bio */}
+        {/* Bio */}
         <div className="md:col-span-2">
-          <label className="mb-2 block text-sm text-zinc-300">
-            Bio
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+            Bio / Notes
           </label>
-
           <Textarea
             {...register('bio')}
-            className="min-h-[120px]"
+            placeholder="Short bio or participant notes..."
+            className="min-h-[100px]"
           />
         </div>
       </div>
 
-      <div className="mt-8 flex justify-end gap-3">
+      {/* Action buttons */}
+      <div className="mt-8 flex items-center justify-end gap-3 border-t border-white/[0.07] pt-6">
         <Button
           type="button"
+          variant="secondary"
+          onClick={() => navigate('/members')}
         >
           Cancel
         </Button>
 
-        <Button type="submit">
-          {mode === 'create'
-            ? 'Create User'
-            : 'Save Changes'}
+        <Button type="submit" variant="primary" loading={loading}>
+          <CheckCircle2 className="size-4" />
+          <span>Create User</span>
         </Button>
       </div>
     </form>

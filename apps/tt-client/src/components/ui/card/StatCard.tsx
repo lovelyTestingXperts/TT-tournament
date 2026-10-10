@@ -20,64 +20,72 @@ export default function StatCard({
       group
       relative
       overflow-hidden
-      rounded-[30px]
-      p-6
+      p-5
       transition-all
-      duration-300
-      hover:-translate-y-1
-      hover:bg-white/15
+      duration-200
+      hover:-translate-y-0.5
+      hover:border-primary/40
     "
     >
-      {/* glow */}
+      {/* Dynamic ambient highlight */}
       <div
         className="
+        pointer-events-none
         absolute
-        right-[-50px]
-        top-[-50px]
-        h-[120px]
-        w-[120px]
+        -right-10
+        -top-10
+        h-32
+        w-32
         rounded-full
-        bg-white/5
-        blur-[60px]
+        bg-primary/10
+        blur-2xl
+        transition-all
+        duration-300
+        group-hover:bg-primary/20
       "
       />
 
-      <div className="relative z-10">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-sm text-white/60">
-              {title}
+      <div className="relative z-10 flex items-center justify-between">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
+            {title}
+          </p>
+
+          <h3 className="mt-2 text-2xl font-bold tracking-tight text-white">
+            {value}
+          </h3>
+
+          {subtitle && (
+            <p className="mt-1.5 text-xs text-emerald-400 font-medium">
+              {subtitle}
             </p>
-
-            <h3 className="mt-3 text-3xl font-bold">
-              {value}
-            </h3>
-
-            {subtitle && (
-              <p className="mt-2 text-sm text-emerald-300">
-                {subtitle}
-              </p>
-            )}
-          </div>
-
-          {Icon && (
-            <div
-              className="
-              flex
-              h-14
-              w-14
-              items-center
-              justify-center
-              rounded-2xl
-              bg-white/10
-              transition
-              group-hover:scale-110
-            "
-            >
-              <Icon size={24} />
-            </div>
           )}
         </div>
+
+        {Icon && (
+          <div
+            className="
+            flex
+            h-12
+            w-12
+            items-center
+            justify-center
+            rounded-panel
+            border
+            border-primary/20
+            bg-primary/10
+            text-primary
+            transition-all
+            duration-200
+            group-hover:scale-105
+            group-hover:bg-primary
+            group-hover:text-white
+            group-hover:shadow-[0_0_15px_rgba(230,0,38,0.5)]
+          "
+          >
+            <Icon size={22} />
+          </div>
+        )}
       </div>
     </div>
   );

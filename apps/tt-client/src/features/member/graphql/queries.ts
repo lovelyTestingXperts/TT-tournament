@@ -11,8 +11,12 @@ export const GET_USERS = gql`
         email
         phoneNumber
         role
+        avatar
+        bio
         isActive
+        isEmailVerified
         createdAt
+        updatedAt
       }
 
       meta {
@@ -38,7 +42,9 @@ export const GET_USER = gql`
       avatar
       bio
       isActive
+      isEmailVerified
       createdAt
+      updatedAt
     }
   }
 `;

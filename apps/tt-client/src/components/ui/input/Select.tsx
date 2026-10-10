@@ -1,8 +1,5 @@
 import * as SelectPrimitive from '@radix-ui/react-select';
-import {
-  Check,
-  ChevronDown,
-} from 'lucide-react';
+import { Check, ChevronDown } from 'lucide-react';
 
 type Option = {
   label: string;
@@ -11,9 +8,7 @@ type Option = {
 
 type Props = {
   value?: string;
-  onValueChange?: (
-    value: string
-  ) => void;
+  onValueChange?: (value: string) => void;
   options: Option[];
   placeholder?: string;
 };
@@ -22,128 +17,97 @@ export default function Select({
   value,
   onValueChange,
   options,
-  placeholder =
-    'Select option',
+  placeholder = 'Select option',
 }: Props) {
   return (
-    <SelectPrimitive.Root
-      value={value}
-      onValueChange={
-        onValueChange
-      }
-    >
+    <SelectPrimitive.Root value={value} onValueChange={onValueChange}>
       {/* Trigger */}
       <SelectPrimitive.Trigger
         className="
         flex
-        h-14
+        h-10
         w-full
         items-center
         justify-between
-        rounded-[22px]
+        rounded-button
         border
-        border-white/10
-        bg-white/10
-        px-5
+        border-white/[0.09]
+        bg-surface-850/90
+        px-3.5
+        text-sm
         text-white
-        backdrop-blur-2xl
+        backdrop-blur-md
         transition-all
-        duration-300
+        duration-200
         outline-none
-        hover:bg-white/15
-        focus:border-violet-400/40
-        focus:bg-white/15
-        focus:ring-4
-        focus:ring-violet-500/20
+        hover:border-white/[0.18]
+        focus:border-primary
+        focus:ring-2
+        focus:ring-primary/20
       "
       >
-        <SelectPrimitive.Value
-          placeholder={
-            placeholder
-          }
-        />
+        <SelectPrimitive.Value placeholder={placeholder} />
 
         <SelectPrimitive.Icon>
-          <ChevronDown
-            size={18}
-            className="text-white/60"
-          />
+          <ChevronDown size={16} className="text-slate-400" />
         </SelectPrimitive.Icon>
       </SelectPrimitive.Trigger>
 
-      {/* Dropdown */}
+      {/* Dropdown Content */}
       <SelectPrimitive.Portal>
         <SelectPrimitive.Content
-          sideOffset={10}
+          sideOffset={6}
           position="popper"
           className="
           z-50
-          min-w-[220px]
+          min-w-[200px]
           overflow-hidden
-          rounded-[28px]
+          rounded-card
           border
-          border-white/10
-          bg-white/10
-          p-2
-          shadow-2xl
-          backdrop-blur-[30px]
+          border-white/[0.12]
+          bg-surface-850/95
+          p-1.5
+          shadow-panel
+          backdrop-blur-2xl
           animate-in
-          fade-in
+          fade-in-80
           zoom-in-95
         "
         >
           <SelectPrimitive.Viewport className="space-y-1">
-            {options.map(
-              (option) => (
-                <SelectPrimitive.Item
-                  key={
-                    option.value
-                  }
-                  value={
-                    option.value
-                  }
-                  className="
+            {options.map((option) => (
+              <SelectPrimitive.Item
+                key={option.value}
+                value={option.value}
+                className="
                   relative
                   flex
                   cursor-pointer
                   select-none
                   items-center
-                  rounded-2xl
-                  px-4
-                  py-3
+                  rounded-button
+                  px-3
+                  py-2
                   text-sm
                   font-medium
-                  text-white/75
+                  text-slate-300
                   outline-none
-                  transition-all
-                  duration-200
-                  hover:bg-white/10
+                  transition-colors
+                  hover:bg-white/[0.08]
                   hover:text-white
-                  focus:bg-white/10
+                  focus:bg-white/[0.08]
                   focus:text-white
-                  data-[state=checked]:bg-white/10
-                  data-[state=checked]:text-white
+                  data-[state=checked]:bg-primary/20
+                  data-[state=checked]:text-primary
                 "
-                >
-                  <SelectPrimitive.ItemText>
-                    {
-                      option.label
-                    }
-                  </SelectPrimitive.ItemText>
+              >
+                <SelectPrimitive.ItemText>{option.label}</SelectPrimitive.ItemText>
 
-                  <SelectPrimitive.ItemIndicator
-                    className="
-                    absolute
-                    right-4
-                  "
-                  >
-                    <Check
-                      size={16}
-                    />
-                  </SelectPrimitive.ItemIndicator>
-                </SelectPrimitive.Item>
-              )
-            )}
+                <SelectPrimitive.ItemIndicator className="absolute right-3 text-primary">
+                  <Check size={14} />
+                </SelectPrimitive.ItemIndicator>
+              </SelectPrimitive.Item>
+            ))}
           </SelectPrimitive.Viewport>
         </SelectPrimitive.Content>
       </SelectPrimitive.Portal>

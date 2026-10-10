@@ -8,31 +8,32 @@ interface Props {
   role: Role;
 }
 
-const roleStyles = {
+const roleStyles: Record<Role, string> = {
   admin:
-    'bg-red-500/10 text-red-400 border-red-500/20',
+    'bg-primary/15 text-primary border-primary/30',
 
   referee:
-    'bg-amber-500/10 text-amber-400 border-amber-500/20',
+    'bg-amber-500/15 text-amber-300 border-amber-500/30',
 
   player:
-    'bg-blue-500/10 text-blue-400 border-blue-500/20',
+    'bg-sky-500/15 text-sky-300 border-sky-500/30',
 
   member:
-    'bg-zinc-500/10 text-zinc-300 border-zinc-500/20',
+    'bg-slate-500/15 text-slate-300 border-slate-500/30',
 };
 
-export default function RoleBadge({
-  role,
-}: Props) {
+export default function RoleBadge({ role }: Props) {
+  const normalizedRole = (role?.toLowerCase() as Role) || 'member';
+  const styles = roleStyles[normalizedRole] || roleStyles.member;
+
   return (
     <span
       className={`
         inline-flex items-center
-        rounded-full border
-        px-3 py-1 text-xs
-        font-medium capitalize
-        ${roleStyles[role]}
+        rounded-badge border
+        px-2.5 py-0.5 text-xs
+        font-medium uppercase tracking-wider
+        ${styles}
       `}
     >
       {role}

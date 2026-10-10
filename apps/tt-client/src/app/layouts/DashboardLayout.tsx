@@ -5,27 +5,16 @@ import Topbar from '@/components/navigation/Topbar';
 
 export default function DashboardLayout() {
   return (
-    <div
-      className="
-      gradient-page
-      h-screen
-      overflow-hidden
-      p-4
-      "
-    >
-      <div className="flex h-full gap-4">
-        <Sidebar />
+    <div className="gradient-page flex h-screen overflow-hidden">
+      {/* Sleek, full-height docked sidebar without floating capsule gaps */}
+      <Sidebar />
 
-        <main
-          className="
-          flex-1
-          overflow-y-auto
-          rounded-[36px]
-        "
-        >
-          <Topbar />
+      {/* Main Content Area */}
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <Topbar />
 
-          <div className="pb-10">
+        <main className="flex-1 overflow-y-auto px-8 py-6">
+          <div className="mx-auto max-w-[1600px] pb-12">
             <Outlet />
           </div>
         </main>

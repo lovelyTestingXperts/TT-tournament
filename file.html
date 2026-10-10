@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AuthModule Dependency Map</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f3f1;
+      color: #1f2937;
+      overflow: hidden;
+    }
+    #app {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: 100vh;
+      gap: 8px;
+      padding: 12px;
+      box-sizing: border-box;
+    }
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      gap: 10px;
+      align-items: center;
+    }
+    .toolbar input,
+    .toolbar button,
+    .toolbar label {
+      font-size: 13px;
+    }
+    .toolbar input {
+      width: 280px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid #ccc;
+      background: white;
+      color: #111827;
+    }
+    .toolbar button {
+      padding: 10px 14px;
+      border: none;
+      border-radius: 12px;
+      background: #3b82f6;
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .toolbar button:hover {
+      background: #2563eb;
+    }
+    .toolbar .control-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .legend {
+      position: absolute;
+      right: 16px;
+      top: 84px;
+      width: 240px;
+      padding: 14px;
+      background: rgba(255,255,255,0.94);
+      border: 1px solid #d4d4d8;
+      border-radius: 16px;
+      box-shadow: 0 18px 55px rgba(15, 23, 42, 0.08);
+      z-index: 10;
+    }
+    .legend h3 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: #374151;
+    }
+    .legend-item {
+      display: grid;
+      grid-template-columns: 20px 1fr;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+    .legend-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 1px solid currentColor;
+    }
+    #graph {
+      position: relative;
+      width: 100%;
+      height: calc(100vh - 84px);
+      background: linear-gradient(180deg,#f8fafc 0%,#eef2ff 100%);
+      overflow: hidden;
+      border-radius: 16px;
+      box-shadow: inset 0 0 0 1px rgba(15,23,42,0.04);
+    }
+    .tooltip {
+      position: fixed;
+      pointer-events: none;
+      max-width: 320px;
+      padding: 14px;
+      background: rgba(15,23,42,0.96);
+      color: #f8fafc;
+      border-radius: 14px;
+      font-size: 13px;
+      line-height: 1.5;
+      box-shadow: 0 20px 45px rgba(15,23,42,0.25);
+      border: 1px solid rgba(255,255,255,0.08);
+      z-index: 20;
+      opacity: 0;
+      transition: opacity 0.16s ease;
+    }
+    .tooltip.visible {
+      opacity: 1;
+    }
+    .tooltip h4 {
+      margin: 0 0 8px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .tooltip .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+    .tooltip code {
+      display: block;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background: rgba(255,255,255,0.08);
+      padding: 6px 8px;
+      border-radius: 8px;
+      margin: 8px 0;
+      overflow: auto;
+    }
+    .tooltip ul {
+      margin: 8px 0 0;
+      padding-left: 18px;
+    }
+    .tooltip ul li {
+      margin-bottom: 4px;
+    }
+    .control-panel {
+      position: absolute;
+      left: 16px;
+      top: 84px;
+      width: 260px;
+      padding: 14px;
+      background: rgba(255,255,255,0.96);
+      border: 1px solid #d4d4d8;
+      border-radius: 16px;
+      box-shadow: 0 18px 55px rgba(15,23,42,0.08);
+      z-index: 10;
+      font-size: 13px;
+    }
+    .control-panel h3 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: #374151;
+    }
+    .control-panel label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .control-panel small {
+      color: #6b7280;
+    }
+    .hidden {
+      display: none !important;
+    }
+    svg {
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+    }
+    svg:active {
+      cursor: grabbing;
+    }
+    .node-text {
+      pointer-events: none;
+      font-size: 11px;
+      fill: #111827;
+      font-weight: 600;
+      text-anchor: middle;
+    }
+    .edge-label {
+      font-size: 11px;
+      fill: #374151;
+      pointer-events: none;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="toolbar">
+      <input id="search" type="search" placeholder="Search nodes by name or type…" />
+      <div class="control-group">
+        <button id="reset">Reset view</button>
+      </div>
+      <div class="control-group">
+        <label><input id="toggleLabels" type="checkbox" checked /> Edge labels</label>
+      </div>
+      <div class="control-group">
+        <span id="status" style="font-size:13px;color:#4b5563;">Focus: AuthModule</span>
+      </div>
+    </div>
+    <div id="graph"></div>
+  </div>
+
+  <div class="legend">
+    <h3>Node type legend</h3>
+    <div class="legend-item"><span class="legend-dot" style="background:#EEEDFE;color:#534AB7;"></span> Module</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#E1F5EE;color:#0F6E56;"></span> Service</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#E6F1FB;color:#185FA5;"></span> Controller</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#FAEEDA;color:#633806;"></span> Model</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#FBEAF0;color:#993556;"></span> External</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#D85A30;color:#7c2d12;border:2px solid #7c2d12;"></span> Focus node</div>
+  </div>
+
+  <div id="tooltip" class="tooltip"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.8/d3.min.js"></script>
+  <script>
+    const data = {
+      nodes: [
+        {
+          id: "AuthModule",
+          label: "AuthModule",
+          type: "Module",
+          filePath: "apps/gateway/src/app/modules/auth/auth.module.ts",
+          responsibility: "Declares auth providers and imports UsersModule for user operations.",
+          methods: ["providers: AuthResolver, AuthService", "imports: UsersModule"],
+          layer: "business"
+        },
+        {
+          id: "AuthService",
+          label: "AuthService",
+          type: "Service",
+          filePath: "apps/gateway/src/app/modules/auth/auth.service.ts",
+          responsibility: "Handles auth use cases such as user registration.",
+          methods: ["register(registerInput)"],
+          layer: "business"
+        },
+        {
+          id: "AuthResolver",
+          label: "AuthResolver",
+          type: "Controller",
+          filePath: "apps/gateway/src/app/modules/auth/auth.resolver.ts",
+          responsibility: "Exposes GraphQL auth mutations to client requests.",
+          methods: ["register(input)"],
+          layer: "presentation"
+        },
+        {
+          id: "UsersModule",
+          label: "UsersModule",
+          type: "Module",
+          filePath: "apps/gateway/src/app/modules/user/user.module.ts",
+          responsibility: "Exports user persistence and business services for auth and other modules.",
+          methods: ["providers: UsersResolver, UsersService", "imports: MongooseModule.forFeature(User)"],
+          layer: "business"
+        },
+        {
+          id: "UsersService",
+          label: "UsersService",
+          type: "Service",
+          filePath: "apps/gateway/src/app/modules/user/user.service.ts",
+          responsibility: "Performs user CRUD, password hashing, and database access.",
+          methods: ["create(registerInput)", "findAll(input)", "findById(id)", "update(id,input)"],
+          layer: "business"
+        },
+        {
+          id: "UserSchema",
+          label: "UserSchema",
+          type: "Model",
+          filePath: "apps/gateway/src/app/modules/user/schemas/user.schema.ts",
+          responsibility: "Defines the Mongoose user document shape, indexes, and validation rules.",
+          methods: ["export const UserSchema"],
+          layer: "data"
+        },
+        {
+          id: "AppModule",
+          label: "AppModule",
+          type: "Module",
+          filePath: "apps/gateway/src/app/app.module.ts",
+          responsibility: "Bootstraps the Nest application and configures GraphQL, config, and MongoDB.",
+          methods: ["imports: AuthModule, UsersModule, TournamentModule, ConfigModule, GraphQLModule, MongooseModule", "providers: AppResolver"],
+          layer: "infrastructure"
+        },
+        {
+          id: "ConfigModule",
+          label: "ConfigModule",
+          type: "External",
+          filePath: "node_modules/@nestjs/config",
+          responsibility: "Loads and validates environment configuration at application startup.",
+          methods: ["forRoot(...)"],
+          layer: "infrastructure"
+        },
+        {
+          id: "GraphQLModule",
+          label: "GraphQLModule",
+          type: "External",
+          filePath: "node_modules/@nestjs/graphql",
+          responsibility: "Enables GraphQL API support and schema generation for the app.",
+          methods: ["forRoot<ApolloDriverConfig>(...)"],
+          layer: "infrastructure"
+        },
+        {
+          id: "MongooseModule",
+          label: "MongooseModule",
+          type: "External",
+          filePath: "node_modules/@nestjs/mongoose",
+          responsibility: "Connects Nest modules to MongoDB models and schemas.",
+          methods: ["forRootAsync(...)", "forFeature(...)"],
+          layer: "infrastructure"
+        },
+        {
+          id: "TournamentModule",
+          label: "TournamentModule",
+          type: "Module",
+          filePath: "apps/gateway/src/app/modules/tournament/tournament.module.ts",
+          responsibility: "Provides tournament business logic and JWT guard providers used by the app.",
+          methods: ["providers: TournamentResolver, TournamentService, JwtAuthGuard", "imports: MongooseModule.forFeature(Tournament)"],
+          layer: "business"
+        }
+      ],
+      edges: [
+        { source: "AppModule", target: "AuthModule", label: "imports AuthModule", type: "import" },
+        { source: "AppModule", target: "UsersModule", label: "imports UsersModule", type: "import" },
+        { source: "AppModule", target: "TournamentModule", label: "imports TournamentModule", type: "import" },
+        { source: "AppModule", target: "ConfigModule", label: "imports ConfigModule", type: "import" },
+        { source: "AppModule", target: "GraphQLModule", label: "imports GraphQLModule", type: "import" },
+        { source: "AppModule", target: "MongooseModule", label: "imports MongooseModule", type: "import" },
+        { source: "AuthModule", target: "UsersModule", label: "imports UsersModule", type: "import" },
+        { source: "AuthModule", target: "AuthService", label: "declares AuthService", type: "import" },
+        { source: "AuthModule", target: "AuthResolver", label: "declares AuthResolver", type: "import" },
+        { source: "AuthService", target: "UsersService", label: "injects UsersService", type: "injection" },
+        { source: "AuthResolver", target: "AuthService", label: "injects AuthService", type: "injection" },
+        { source: "UsersModule", target: "UsersService", label: "declares UsersService", type: "import" },
+        { source: "UsersModule", target: "MongooseModule", label: "imports MongooseModule", type: "import" },
+        { source: "UsersService", target: "UserSchema", label: "injects UserSchema model", type: "injection" },
+        { source: "TournamentModule", target: "MongooseModule", label: "imports MongooseModule", type: "import" }
+      ]
+    };
+
+    const typeConfig = {
+      Module: { fill: "#EEEDFE", stroke: "#534AB7", text: "#1f2937" },
+      Service: { fill: "#E1F5EE", stroke: "#0F6E56", text: "#1f2937" },
+      Controller: { fill: "#E6F1FB", stroke: "#185FA5", text: "#1f2937" },
+      Repository: { fill: "#FAEEDA", stroke: "#854F0B", text: "#1f2937" },
+      Model: { fill: "#FAEEDA", stroke: "#633806", text: "#1f2937" },
+      Guard: { fill: "#EAF3DE", stroke: "#3B6D11", text: "#1f2937" },
+      Strategy: { fill: "#EAF3DE", stroke: "#27500A", text: "#1f2937" },
+      External: { fill: "#FBEAF0", stroke: "#993556", text: "#1f2937" }
+    };
+
+    const focusId = "AuthModule";
+    const nodeRadius = 32;
+    const focusRadius = Math.round(nodeRadius * 1.4);
+    const width = window.innerWidth - 32;
+    const height = window.innerHeight - 120;
+    const edgeLabelVisible = { value: true };
+    let pinned = null;
+    let isolated = false;
+
+    const adjacency = {};
+    const reverseAdj = {};
+    const nodeById = new Map();
+    data.nodes.forEach(node => {
+      nodeById.set(node.id, node);
+      adjacency[node.id] = [];
+      reverseAdj[node.id] = [];
+    });
+    data.edges.forEach(edge => {
+      adjacency[edge.source].push(edge.target);
+      reverseAdj[edge.target].push(edge.source);
+    });
+
+    function getTooltipHtml(node) {
+      const upstream = adjacency[node.id]?.length || 0;
+      const downstream = reverseAdj[node.id]?.length || 0;
+      return `
+        <h4>${node.label}</h4>
+        <div class="badge" style="background:${typeConfig[node.type].fill};color:${typeConfig[node.type].stroke};">${node.type}</div>
+        <code>${node.filePath}</code>
+        <div><strong>Layer:</strong> ${node.layer}</div>
+        <div><strong>Responsibility:</strong> ${node.responsibility}</div>
+        <div><strong>Providers/methods:</strong></div>
+        <ul>${node.methods.map(m => `<li>${m}</li>`).join("")}</ul>
+        <div><strong>depends on:</strong> ${upstream} node${upstream === 1 ? "" : "s"}</div>
+        <div><strong>depended on by:</strong> ${downstream} node${downstream === 1 ? "" : "s"}</div>
+      `;
+    }
+
+    const svg = d3.select("#graph").append("svg")
+      .attr("width", width)
+      .attr("height", height)
+      .call(d3.zoom()
+        .scaleExtent([0.35, 2.5])
+        .on("zoom", event => container.attr("transform", event.transform)))
+      .on("dblclick.zoom", null);
+
+    const container = svg.append("g");
+
+    svg.append("defs").html(`
+      <marker id="arrowhead" viewBox="0 -5 10 10" refX="26" refY="0" markerWidth="8" markerHeight="8" orient="auto">
+        <path d="M0,-5 L10,0 L0,5" fill="#B4B2A9"></path>
+      </marker>`);
+
+    const linkGroup = container.append("g").attr("class", "links");
+    const labelGroup = container.append("g").attr("class", "labels");
+    const nodeGroup = container.append("g").attr("class", "nodes");
+
+    const simulation = d3.forceSimulation(data.nodes)
+      .force("link", d3.forceLink(data.edges).id(d => d.id).distance(180).strength(0.7))
+      .force("charge", d3.forceManyBody().strength(-520))
+      .force("center", d3.forceCenter(width / 2, height / 2))
+      .force("collide", d3.forceCollide().radius(d => d.id === focusId ? focusRadius + 14 : nodeRadius + 12));
+
+    const links = linkGroup.selectAll("path")
+      .data(data.edges)
+      .enter()
+      .append("path")
+      .attr("stroke", "#B4B2A9")
+      .attr("stroke-width", 1.5)
+      .attr("fill", "none")
+      .attr("marker-end", "url(#arrowhead)");
+
+    const edgeLabels = labelGroup.selectAll("text")
+      .data(data.edges)
+      .enter()
+      .append("text")
+      .attr("class", "edge-label")
+      .style("visibility", edgeLabelVisible.value ? "visible" : "hidden")
+      .append("textPath")
+      .attr("xlink:href", (d, i) => "#edgepath" + i)
+      .attr("startOffset", "50%")
+      .attr("text-anchor", "middle")
+      .text(d => d.label);
+
+    const edgePath = labelGroup.selectAll("path")
+      .data(data.edges)
+      .enter()
+      .append("path")
+      .attr("id", (d, i) => "edgepath" + i)
+      .attr("fill-opacity", 0)
+      .attr("stroke-opacity", 0)
+      .attr("d", "");
+
+    const node = nodeGroup.selectAll("g")
+      .data(data.nodes)
+      .enter()
+      .append("g")
+      .attr("class", "node")
+      .style("cursor", "pointer")
+      .call(d3.drag()
+        .on("start", dragstarted)
+        .on("drag", dragged)
+        .on("end", dragended));
+
+    node.append("circle")
+      .attr("r", d => d.id === focusId ? focusRadius : nodeRadius)
+      .attr("fill", d => typeConfig[d.type].fill)
+      .attr("stroke", d => d.id === focusId ? "#b44a2d" : typeConfig[d.type].stroke)
+      .attr("stroke-width", d => d.id === focusId ? 4 : 2);
+
+    node.append("text")
+      .attr("class", "node-text")
+      .attr("dy", "0.35em")
+      .text(d => d.label)
+      .call(wrap, focusRadius * 1.9);
+
+    const tooltip = d3.select("#tooltip");
+
+    node.on("mouseover", (event, d) => {
+      if (!pinned) updateHighlight(d.id);
+      tooltip.html(getTooltipHtml(d)).classed("visible", true);
+    }).on("mousemove", (event) => {
+      tooltip.style("left", event.pageX + 14 + "px")
+        .style("top", event.pageY + 14 + "px");
+    }).on("mouseout", () => {
+      if (!pinned) clearHighlight();
+      tooltip.classed("visible", false);
+    }).on("click", (event, d) => {
+      event.stopPropagation();
+      if (pinned === d.id) {
+        pinned = null;
+        clearHighlight();
+      } else {
+        pinned = d.id;
+        updateHighlight(d.id);
+      }
+    }).on("dblclick", (event, d) => {
+      event.stopPropagation();
+      isolated = !isolated;
+      if (isolated) isolateNeighborhood(d.id);
+      else restoreNodes();
+    });
+
+    svg.on("click", () => {
+      pinned = null;
+      clearHighlight();
+      if (isolated) {
+        isolated = false;
+        restoreNodes();
+      }
+    });
+    window.addEventListener("keydown", event => {
+      if (event.key === "Escape") {
+        pinned = null;
+        clearHighlight();
+        if (isolated) {
+          isolated = false;
+          restoreNodes();
+        }
+      }
+    });
+
+    simulation.on("tick", () => {
+      links.attr("d", d => {
+        const sourceX = d.source.x;
+        const sourceY = d.source.y;
+        const targetX = d.target.x;
+        const targetY = d.target.y;
+        const dx = targetX - sourceX;
+        const dy = targetY - sourceY;
+        const dr = Math.hypot(dx, dy) * 0.8;
+        return `M${sourceX},${sourceY}A${dr},${dr} 0 0,1 ${targetX},${targetY}`;
+      });
+
+      edgePath.attr("d", d => {
+        const sourceX = d.source.x;
+        const sourceY = d.source.y;
+        const targetX = d.target.x;
+        const targetY = d.target.y;
+        const dx = targetX - sourceX;
+        const dy = targetY - sourceY;
+        const dr = Math.hypot(dx, dy) * 0.8;
+        return `M${sourceX},${sourceY}A${dr},${dr} 0 0,1 ${targetX},${targetY}`;
+      });
+
+      node.attr("transform", d => `translate(${d.x},${d.y})`);
+    });
+
+    d3.select("#reset").on("click", () => {
+      svg.transition().duration(400).call(
+        d3.zoom().transform,
+        d3.zoomIdentity
+      );
+      pinned = null;
+      if (isolated) {
+        isolated = false;
+        restoreNodes();
+      }
+      clearHighlight();
+    });
+
+    d3.select("#toggleLabels").on("change", event => {
+      const visible = event.target.checked ? "visible" : "hidden";
+      edgeLabels.style("visibility", visible);
+    });
+
+    d3.select("#search").on("input", event => {
+      const term = event.target.value.trim().toLowerCase();
+      if (!term) {
+        node.select("circle").style("opacity", 1);
+        node.style("display", "block");
+        links.style("opacity", 1);
+        edgeLabels.style("opacity", edgeLabelVisible.value ? 1 : 0);
+        return;
+      }
+      node.each(function(d) {
+        const match = d.label.toLowerCase().includes(term) || d.type.toLowerCase().includes(term);
+        d3.select(this).style("opacity", match ? 1 : 0.15);
+      });
+      links.style("opacity", 0.15);
+      edgeLabels.style("opacity", 0.15);
+      data.edges.forEach((edge, i) => {
+        const sourceMatch = edge.source.toLowerCase().includes(term) || nodeById.get(edge.source).type.toLowerCase().includes(term);
+        const targetMatch = edge.target.toLowerCase().includes(term) || nodeById.get(edge.target).type.toLowerCase().includes(term);
+        if (sourceMatch || targetMatch) {
+          d3.select(links.nodes()[i]).style("opacity", 1);
+          d3.select(edgeLabels.nodes()[i]).style("opacity", 1);
+        }
+      });
+    });
+
+    function updateHighlight(nodeId) {
+      const upstream = new Set([nodeId]);
+      const downstream = new Set([nodeId]);
+      adjacency[nodeId]?.forEach(t => upstream.add(t));
+      reverseAdj[nodeId]?.forEach(s => downstream.add(s));
+      node.each(function(d) {
+        const circle = d3.select(this).select("circle");
+        if (d.id === nodeId) {
+          circle.attr("fill", "#D85A30").attr("stroke", "#7c2d12").attr("stroke-width", 4).style("opacity", 1);
+        } else if (upstream.has(d.id)) {
+          circle.attr("fill", "#378ADD").attr("stroke", "#2856a2").attr("stroke-width", 3).style("opacity", 1);
+        } else if (downstream.has(d.id)) {
+          circle.attr("fill", "#BA7517").attr("stroke", "#8d5a10").attr("stroke-width", 3).style("opacity", 1);
+        } else {
+          circle.attr("fill", typeConfig[d.type].fill).attr("stroke", d.id === focusId ? "#b44a2d" : typeConfig[d.type].stroke).attr("stroke-width", d.id === focusId ? 4 : 2).style("opacity", 0.15);
+        }
+      });
+      links.style("stroke", d => d.source.id === nodeId || d.target.id === nodeId ? "#378ADD" : "#B4B2A9")
+        .style("stroke-width", d => d.source.id === nodeId || d.target.id === nodeId ? 2.5 : 1.5)
+        .style("opacity", d => d.source.id === nodeId || d.target.id === nodeId ? 1 : 0.15);
+    }
+
+    function clearHighlight() {
+      node.select("circle")
+        .attr("fill", d => typeConfig[d.type].fill)
+        .attr("stroke", d => d.id === focusId ? "#b44a2d" : typeConfig[d.type].stroke)
+        .attr("stroke-width", d => d.id === focusId ? 4 : 2)
+        .style("opacity", 1);
+      links.style("stroke", "#B4B2A9").style("stroke-width", 1.5).style("opacity", 1);
+    }
+
+    function isolateNeighborhood(nodeId) {
+      const neighborhood = new Set([nodeId]);
+      adjacency[nodeId]?.forEach(t => neighborhood.add(t));
+      reverseAdj[nodeId]?.forEach(s => neighborhood.add(s));
+      node.each(function(d) {
+        d3.select(this).style("display", neighborhood.has(d.id) ? "block" : "none");
+      });
+      links.each(function(d) {
+        const visible = neighborhood.has(d.source.id) && neighborhood.has(d.target.id);
+        d3.select(this).style("display", visible ? "block" : "none");
+      });
+      edgeLabels.each(function(d) {
+        const visible = neighborhood.has(d.source.id) && neighborhood.has(d.target.id);
+        d3.select(this).style("display", visible ? "block" : "none");
+      });
+    }
+
+    function restoreNodes() {
+      node.style("display", "block");
+      links.style("display", "block");
+      edgeLabels.style("display", edgeLabelVisible.value ? "block" : "none");
+    }
+
+    function dragstarted(event, d) {
+      if (!event.active) simulation.alphaTarget(0.2).restart();
+      d.fx = d.x;
+      d.fy = d.y;
+    }
+
+    function dragged(event, d) {
+      d.fx = event.x;
+      d.fy = event.y;
+    }
+
+    function dragended(event, d) {
+      if (!event.active) simulation.alphaTarget(0);
+      d.fx = event.x;
+      d.fy = event.y;
+    }
+
+    function wrap(text, width) {
+      text.each(function() {
+        const textEl = d3.select(this);
+        const words = textEl.text().split(/\s+/).reverse();
+        let word;
+        let line = [];
+        let lineNumber = 0;
+        const lineHeight = 1.1;
+        const y = textEl.attr("y");
+        let tspan = textEl.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", "0em");
+        while (word = words.pop()) {
+          line.push(word);
+          tspan.text(line.join(" "));
+          if (tspan.node().getComputedTextLength() > width) {
+            line.pop();
+            tspan.text(line.join(" "));
+            line = [word];
+            tspan = textEl.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + "em").text(word);
+          }
+        }
+      });
+    }
+
+    clearHighlight();
+  </script>
+</body>
+</html>

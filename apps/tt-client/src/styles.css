@@ -1,27 +1,74 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-/* You can add global styles to this file, and also import other style files */
+
+@layer base {
+  /* Sleek custom scrollbars */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(9, 11, 16, 0.6);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(230, 0, 38, 0.45);
+  }
+}
+
 @layer components {
+  /* Crisp, refined card with vibrant ambient sheen */
   .glass-card {
-    @apply bg-white/10
-    backdrop-blur-xl
-    border
-    border-white/10
-    rounded-[28px]
-    shadow-xl;
+    @apply bg-surface-850/80
+      backdrop-blur-xl
+      border
+      border-white/[0.08]
+      rounded-card
+      shadow-card
+      transition-all
+      duration-200;
   }
 
+  .glass-card:hover {
+    @apply border-white/[0.14] shadow-panel;
+  }
+
+  /* Modern structured sidebar */
   .glass-sidebar {
-    @apply bg-white/5
-    backdrop-blur-2xl
-    border-r
-    border-white/10;
+    @apply bg-sidebarGradient
+      backdrop-blur-2xl
+      border-r
+      border-white/[0.08]
+      shadow-panel;
   }
 
+  /* Vibrant app root container */
   .gradient-page {
     @apply min-h-screen
-    bg-appGradient
-    text-white;
+      bg-appGradient
+      text-slate-100
+      antialiased;
+  }
+
+  /* Primary action button glow */
+  .btn-vibrant-primary {
+    @apply bg-brandGradient
+      text-white
+      font-semibold
+      shadow-brandGlow
+      hover:bg-brandGradientHover
+      hover:shadow-[0_0_30px_rgba(255,23,68,0.55)]
+      border
+      border-white/20
+      transition-all
+      duration-200
+      active:scale-[0.98];
   }
 }
