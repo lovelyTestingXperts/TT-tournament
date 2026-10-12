@@ -6,7 +6,7 @@ export default function MemberHeader() {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div data-testid="member-header" className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <div className="flex items-center gap-2.5">
           <div className="flex size-9 items-center justify-center rounded-panel border border-primary/30 bg-primary/10 text-primary">
@@ -23,6 +23,7 @@ export default function MemberHeader() {
       </div>
 
       <Button
+        data-testid="add-user-btn"
         variant="primary"
         size="md"
         onClick={() => navigate('/members/create')}

@@ -74,9 +74,9 @@ export default function MemberForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="glass-card p-6 md:p-8">
+    <form data-testid="create-user-form" onSubmit={handleSubmit(onSubmit)} className="glass-card p-6 md:p-8">
       {errorMessage && (
-        <div className="mb-6 flex items-center gap-3 rounded-panel border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
+        <div data-testid="alert-error" className="mb-6 flex items-center gap-3 rounded-panel border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
           <AlertCircle className="size-5 shrink-0 text-red-400" />
           <span>{errorMessage}</span>
         </div>
@@ -85,10 +85,12 @@ export default function MemberForm() {
       <div className="grid gap-6 md:grid-cols-2">
         {/* First Name */}
         <div>
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+          <label htmlFor="user-firstname-input" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
             First Name <span className="text-primary">*</span>
           </label>
           <Input
+            id="user-firstname-input"
+            data-testid="user-firstname-input"
             {...register('firstName')}
             placeholder="Jane"
             error={errors.firstName?.message}
@@ -97,10 +99,12 @@ export default function MemberForm() {
 
         {/* Last Name */}
         <div>
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+          <label htmlFor="user-lastname-input" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
             Last Name <span className="text-primary">*</span>
           </label>
           <Input
+            id="user-lastname-input"
+            data-testid="user-lastname-input"
             {...register('lastName')}
             placeholder="Doe"
             error={errors.lastName?.message}
@@ -109,10 +113,12 @@ export default function MemberForm() {
 
         {/* Employee ID */}
         <div>
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+          <label htmlFor="user-employeeid-input" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
             Employee ID (Optional)
           </label>
           <Input
+            id="user-employeeid-input"
+            data-testid="user-employeeid-input"
             {...register('employeeId')}
             placeholder="EMP-1024"
             error={errors.employeeId?.message}
@@ -121,10 +127,12 @@ export default function MemberForm() {
 
         {/* Role */}
         <div>
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+          <label htmlFor="user-role-select" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
             Role
           </label>
           <select
+            id="user-role-select"
+            data-testid="user-role-select"
             {...register('role')}
             className="
               h-10 w-full rounded-button
@@ -144,10 +152,12 @@ export default function MemberForm() {
 
         {/* Email */}
         <div className="md:col-span-2">
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+          <label htmlFor="user-email-input" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
             Email Address <span className="text-primary">*</span>
           </label>
           <Input
+            id="user-email-input"
+            data-testid="user-email-input"
             {...register('email')}
             type="email"
             placeholder="jane.doe@example.com"
@@ -157,11 +167,13 @@ export default function MemberForm() {
 
         {/* Password */}
         <div className="md:col-span-2">
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+          <label htmlFor="user-password-input" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
             Initial Password <span className="text-primary">*</span>
           </label>
           <div className="relative">
             <Input
+              id="user-password-input"
+              data-testid="user-password-input"
               {...register('password')}
               type={showPassword ? 'text' : 'password'}
               placeholder="Minimum 6 characters"
@@ -169,6 +181,7 @@ export default function MemberForm() {
             />
             <button
               type="button"
+              data-testid="toggle-password-visibility-btn"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3.5 top-3 text-slate-400 hover:text-white"
             >
@@ -179,10 +192,12 @@ export default function MemberForm() {
 
         {/* Phone */}
         <div className="md:col-span-2">
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+          <label htmlFor="user-phone-input" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
             Phone Number (Optional)
           </label>
           <Input
+            id="user-phone-input"
+            data-testid="user-phone-input"
             {...register('phoneNumber')}
             placeholder="+1 (555) 000-0000"
             error={errors.phoneNumber?.message}
@@ -191,10 +206,12 @@ export default function MemberForm() {
 
         {/* Bio */}
         <div className="md:col-span-2">
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+          <label htmlFor="user-bio-input" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
             Bio / Notes
           </label>
           <Textarea
+            id="user-bio-input"
+            data-testid="user-bio-input"
             {...register('bio')}
             placeholder="Short bio or participant notes..."
             className="min-h-[100px]"
@@ -205,6 +222,7 @@ export default function MemberForm() {
       {/* Action buttons */}
       <div className="mt-8 flex items-center justify-end gap-3 border-t border-white/[0.07] pt-6">
         <Button
+          data-testid="cancel-btn"
           type="button"
           variant="secondary"
           onClick={() => navigate('/members')}
@@ -212,7 +230,7 @@ export default function MemberForm() {
           Cancel
         </Button>
 
-        <Button type="submit" variant="primary" loading={loading}>
+        <Button data-testid="submit-user-btn" type="submit" variant="primary" loading={loading}>
           <CheckCircle2 className="size-4" />
           <span>Create User</span>
         </Button>

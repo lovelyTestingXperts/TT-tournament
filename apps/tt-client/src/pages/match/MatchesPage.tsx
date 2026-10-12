@@ -7,7 +7,7 @@ import MatchHeader from '@/features/match/components/MatchHeader';
 export default function MatchesPage() {
   return (
     <PageContainer>
-      <div className="space-y-8">
+      <div data-testid="matches-page" className="space-y-8">
         <MatchHeader />
 
         <MatchFilters />

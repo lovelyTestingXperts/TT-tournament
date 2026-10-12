@@ -765,3 +765,37 @@ Then continue sequentially.
 IMPORTANT:
 Backend should be scalable, modular, production-grade and aligned with Nx monorepo architecture.
 
+==========================================================
+21. PLAYWRIGHT & E2E TESTING ARCHITECTURE (MANDATORY)
+==========================================================
+
+Frontend components, pages, forms, and tables MUST be built Playwright-ready from the start.
+
+1. Test ID Naming Standards:
+- Buttons:
+  - Global/form action: `data-testid="submit-btn"`, `data-testid="cancel-btn"`, `data-testid="back-btn"`
+  - Domain specific: `data-testid="create-tournament-btn"`, `data-testid="add-user-btn"`
+  - Card/Item specific: `data-testid="delete-tournament-btn"`, `data-testid="register-tournament-btn"`
+- Inputs & Selects:
+  - `data-testid="<field-name>-input"` (e.g. `tournament-name-input`, `email-input`)
+  - `data-testid="<field-name>-select"` (e.g. `tournament-status-select`, `role-filter-select`)
+- Entities & Lists:
+  - Listing container: `data-testid="tournament-grid"`, `data-testid="member-table"`
+  - List items: `data-testid="tournament-card"`, `data-testid="tournament-card-${id}"`
+  - Table rows: `data-testid="member-row"`, `data-testid="member-row-${id}"`
+- Navigation & Tabs:
+  - Sidebar: `data-testid="sidebar"`, links: `data-testid="nav-tournaments"`, `data-testid="nav-members"`
+  - Tabs: `data-testid="tab-overview"`, `data-testid="tab-participants"`, `data-testid="tab-matches"`
+- States & Feedback:
+  - Alerts: `data-testid="alert-success"`, `data-testid="alert-error"`
+  - Loading: `data-testid="loading-spinner"`, `data-testid="loading-skeleton"`
+  - Empty: `data-testid="empty-state"`
+  - Badges: `data-testid="status-badge" data-status="<status>"`
+
+2. Accessibility & Selector Resiliency:
+- Link `<label htmlFor="...">` with `<input id="...">` to support `page.getByLabel()`.
+- Use explicit `type="button"` / `type="submit"` on buttons.
+- Icon-only interactive elements must have `aria-label`.
+- Tabs must have `role="tablist"` and `role="tab"` attributes.
+
+

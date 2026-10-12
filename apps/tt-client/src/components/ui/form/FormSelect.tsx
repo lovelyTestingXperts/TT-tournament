@@ -28,6 +28,7 @@ export default function FormSelect<T extends FieldValues>({
       render={({ field, fieldState }) => (
         <FormField label={label} error={fieldState.error?.message}>
           <Select
+            data-testid={`${name}-select`}
             value={field.value}
             onValueChange={field.onChange}
             options={options}

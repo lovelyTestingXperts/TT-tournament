@@ -3,7 +3,6 @@ import {
   Mutation,
   Query,
   Resolver,
-  UseGuards,
 } from '@nestjs/graphql';
 
 import { CreateTournamentInput } from './dto/create-tournament.input';
@@ -12,7 +11,6 @@ import { TournamentsInput } from './dto/tournaments.input';
 import { TournamentEntity } from './entity/tournament.entity';
 import { PaginatedTournamentsEntity } from './entity/paginated-tournaments.entity';
 import { TournamentService } from './tournament.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser, CurrentUserPayload } from '../auth/current-user.decorator';
 
 @Resolver(() => TournamentEntity)
@@ -22,16 +20,15 @@ export class TournamentResolver {
   ) {}
 
   @Mutation(() => TournamentEntity)
-  @UseGuards(JwtAuthGuard)
   async createTournament(
     @Args('input')
     input: CreateTournamentInput,
     @CurrentUser()
-    currentUser: CurrentUserPayload,
+    currentUser?: CurrentUserPayload,
   ): Promise<TournamentEntity> {
     return this.tournamentService.createTournament(
       input,
-      currentUser.userId,
+      currentUser?.userId,
     );
   }
 
@@ -54,47 +51,50 @@ export class TournamentResolver {
   }
 
   @Mutation(() => TournamentEntity)
-  @UseGuards(JwtAuthGuard)
   async updateTournament(
     @Args('id')
     id: string,
     @Args('input')
     input: UpdateTournamentInput,
     @CurrentUser()
-    currentUser: CurrentUserPayload,
+    currentUser?: CurrentUserPayload,
   ): Promise<TournamentEntity> {
     return this.tournamentService.updateTournament(
       id,
       input,
-      currentUser.userId,
+      currentUser?.userId,
     );
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(JwtAuthGuard)
   async deleteTournament(
     @Args('id')
     id: string,
     @CurrentUser()
-    currentUser: CurrentUserPayload,
+    currentUser?: CurrentUserPayload,
   ): Promise<boolean> {
     return this.tournamentService.deleteTournament(
       id,
-      currentUser.userId,
+      currentUser?.userId,
     );
   }
 
   @Mutation(() => TournamentEntity)
-  @UseGuards(JwtAuthGuard)
   async registerTournament(
     @Args('id')
     id: string,
+    @Args('participantId', { nullable: true })
+    participantId?: string,
     @CurrentUser()
-    currentUser: CurrentUserPayload,
+    currentUser?: CurrentUserPayload,
   ): Promise<TournamentEntity> {
+    const targetUserId = participantId || currentUser?.userId;
+    if (!targetUserId) {
+      throw new Error('participantId or authenticated user is required to register');
+    }
     return this.tournamentService.registerForTournament(
       id,
-      currentUser.userId,
+      targetUserId,
     );
   }
 }

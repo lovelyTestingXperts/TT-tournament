@@ -93,7 +93,7 @@ export default function MemberTable({
   }
 
   return (
-    <div className="glass-card overflow-visible">
+    <div data-testid="members-table" className="glass-card overflow-visible">
       {/* Table Head */}
       <div className="grid grid-cols-12 items-center border-b border-white/[0.07] bg-white/[0.02] px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-400">
         <div className="col-span-4">User Details</div>
@@ -112,6 +112,8 @@ export default function MemberTable({
           return (
             <div
               key={member.id}
+              data-testid="member-row"
+              data-member-id={member.id}
               className="
                 grid
                 grid-cols-12
@@ -191,6 +193,8 @@ export default function MemberTable({
               {/* Action Dropdown Menu */}
               <div className="col-span-1 relative flex justify-end">
                 <button
+                  type="button"
+                  data-testid={`member-actions-btn-${member.id}`}
                   aria-label="Actions"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -229,6 +233,8 @@ export default function MemberTable({
                     "
                   >
                     <button
+                      type="button"
+                      data-testid={`view-member-btn-${member.id}`}
                       onClick={() => {
                         setActiveMenuId(null);
                         navigate(`/members/${member.id}`);
@@ -240,6 +246,8 @@ export default function MemberTable({
                     </button>
 
                     <button
+                      type="button"
+                      data-testid={`edit-member-btn-${member.id}`}
                       onClick={() => {
                         setActiveMenuId(null);
                         navigate(`/members/${member.id}/edit`);
@@ -251,6 +259,8 @@ export default function MemberTable({
                     </button>
 
                     <button
+                      type="button"
+                      data-testid={`delete-member-btn-${member.id}`}
                       disabled={deleting}
                       onClick={() => handleDelete(member.id, `${member.firstName} ${member.lastName}`)}
                       className="flex w-full items-center gap-2.5 rounded-button px-3 py-2 text-xs font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300"
@@ -267,7 +277,7 @@ export default function MemberTable({
       </div>
 
       {/* Table Footer / Pagination */}
-      <div className="flex flex-col gap-3 border-t border-white/[0.07] px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div data-testid="members-pagination" className="flex flex-col gap-3 border-t border-white/[0.07] px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs text-slate-400">
           Showing <span className="font-medium text-slate-200">{(meta?.page ?? 1 - 1) * (meta?.limit ?? 10) + 1}</span>–
           <span className="font-medium text-slate-200">{Math.min((meta?.page ?? 1) * (meta?.limit ?? 10), meta?.total ?? 0)}</span> of{' '}
@@ -276,6 +286,8 @@ export default function MemberTable({
 
         <div className="flex items-center gap-2">
           <button
+            type="button"
+            data-testid="pagination-prev-btn"
             disabled={(meta?.page ?? 1) <= 1}
             onClick={() => onPageChange((meta?.page ?? 1) - 1)}
             className="
@@ -298,11 +310,13 @@ export default function MemberTable({
             Previous
           </button>
 
-          <span className="flex h-8.5 items-center rounded-button bg-primary px-3 text-xs font-bold text-white shadow-brandGlow">
+          <span data-testid="pagination-current-page" className="flex h-8.5 items-center rounded-button bg-primary px-3 text-xs font-bold text-white shadow-brandGlow">
             {meta?.page ?? 1}
           </span>
 
           <button
+            type="button"
+            data-testid="pagination-next-btn"
             disabled={(meta?.page ?? 1) >= (meta?.totalPages ?? 1)}
             onClick={() => onPageChange((meta?.page ?? 1) + 1)}
             className="

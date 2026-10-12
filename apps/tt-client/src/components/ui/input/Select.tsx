@@ -11,6 +11,7 @@ type Props = {
   onValueChange?: (value: string) => void;
   options: Option[];
   placeholder?: string;
+  'data-testid'?: string;
 };
 
 export default function Select({
@@ -18,11 +19,13 @@ export default function Select({
   onValueChange,
   options,
   placeholder = 'Select option',
+  'data-testid': testId = 'select-trigger',
 }: Props) {
   return (
     <SelectPrimitive.Root value={value} onValueChange={onValueChange}>
       {/* Trigger */}
       <SelectPrimitive.Trigger
+        data-testid={testId}
         className="
         flex
         h-10
@@ -79,6 +82,7 @@ export default function Select({
               <SelectPrimitive.Item
                 key={option.value}
                 value={option.value}
+                data-testid={`select-option-${option.value}`}
                 className="
                   relative
                   flex

@@ -16,9 +16,10 @@ export class RegisterInput {
   @IsString()
   lastName!: string;
 
-  @Field()
+  @Field({ nullable: true })
+  @IsOptional()
   @IsString()
-  employeeId!: string;
+  employeeId?: string;
 
   @Field()
   @IsEmail()

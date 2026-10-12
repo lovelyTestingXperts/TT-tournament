@@ -21,3 +21,38 @@
 - The `nx-generate` skill handles generator discovery internally - don't call nx_docs just to look up generator syntax
 
 <!-- nx configuration end-->
+
+# Playwright Testing & E2E Testability Standards (MANDATORY)
+
+Every frontend component, page, form, and interactive element MUST be authored and maintained to be directly testable with Playwright.
+
+## 1. Test ID Protocol (`data-testid`)
+Always equip elements with standard, predictable `data-testid` attributes:
+- **Buttons / Actions**: `data-testid="<action>-btn"` or `data-testid="<domain>-<action>-btn"`
+  - Examples: `create-tournament-btn`, `submit-btn`, `cancel-btn`, `delete-btn`, `register-btn`, `add-user-btn`
+- **Inputs & Form Controls**: `data-testid="<field>-input"`, `data-testid="<field>-select"`
+  - Examples: `search-input`, `tournament-name-input`, `email-input`, `password-input`, `status-select`
+- **Cards, Rows & Iterated Items**:
+  - Generic: `data-testid="<domain>-card"`, `data-testid="<domain>-row"`
+  - Item-specific: `data-testid="<domain>-card-${id}"`, `data-testid="<domain>-row-${id}"`
+- **Containers, Pages & Sections**:
+  - Pages: `data-testid="<domain>-page"` (e.g. `tournaments-page`, `members-page`, `tournament-details-page`)
+  - Layouts / Nav: `data-testid="sidebar"`, `data-testid="topbar"`, `data-testid="nav-<item>"`
+  - Grids & Lists: `data-testid="<domain>-grid"`, `data-testid="<domain>-table"`, `data-testid="participant-list"`
+  - Tabs: `data-testid="tab-<name>"`
+- **Feedback & State Indicators**:
+  - Loading: `data-testid="loading-spinner"`, `data-testid="loading-skeleton"`
+  - Empty states: `data-testid="empty-state"`
+  - Alerts: `data-testid="alert-success"`, `data-testid="alert-error"`
+  - Badges: `data-testid="status-badge" data-status="<status>"`
+
+## 2. Accessible Semantics
+- Ensure `<label htmlFor="field-id">` matches `<input id="field-id">` so Playwright's `page.getByLabel()` resolves cleanly.
+- Buttons must declare explicit `type="button"` or `type="submit"`.
+- Icon-only buttons must have `aria-label="<action description>"`.
+- Tabs must provide `role="tablist"` and `role="tab"` with `aria-selected`.
+
+## 3. Playwright Coding Principles
+- Write robust, resilient components that avoid testing brittle styling classes or DOM nesting.
+- Ensure all interactive feedback (toasts, alerts, disabled states during loading) can be verified by automated assertions.
+

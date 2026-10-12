@@ -28,13 +28,14 @@ export default function MemberFilter({
   onReset,
 }: MemberFilterProps) {
   return (
-    <div className="glass-card p-4">
+    <div data-testid="member-filters" className="glass-card p-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
         {/* Search */}
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
 
           <Input
+            data-testid="user-search-input"
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search by name, email or phone..."
@@ -46,6 +47,9 @@ export default function MemberFilter({
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Role Filter */}
           <select
+            id="user-role-select"
+            data-testid="user-role-select"
+            aria-label="Filter users by role"
             value={role ?? ''}
             onChange={(e) => onRoleChange(e.target.value || undefined)}
             className="
@@ -75,6 +79,9 @@ export default function MemberFilter({
 
           {/* Status Filter */}
           <select
+            id="user-status-select"
+            data-testid="user-status-select"
+            aria-label="Filter users by status"
             value={status ?? ''}
             onChange={(e) => onStatusChange(e.target.value || undefined)}
             className="
@@ -102,6 +109,9 @@ export default function MemberFilter({
 
           {/* Sort Filter */}
           <select
+            id="user-sort-select"
+            data-testid="user-sort-select"
+            aria-label="Sort users"
             value={sort ?? ''}
             onChange={(e) => onSortChange(e.target.value || undefined)}
             className="
@@ -130,6 +140,7 @@ export default function MemberFilter({
 
           {/* Reset button */}
           <Button
+            data-testid="user-reset-filters-btn"
             variant="secondary"
             size="md"
             onClick={onReset}

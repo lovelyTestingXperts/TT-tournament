@@ -2,7 +2,7 @@ import { Bell, Sparkles } from 'lucide-react';
 
 export default function Topbar() {
   return (
-    <header className="flex h-20 items-center justify-between border-b border-white/[0.06] bg-surface-900/40 px-8 backdrop-blur-md">
+    <header data-testid="topbar" className="flex h-20 items-center justify-between border-b border-white/[0.06] bg-surface-900/40 px-8 backdrop-blur-md">
       <div className="flex items-center gap-3">
         <div>
           <div className="flex items-center gap-2">
@@ -22,6 +22,8 @@ export default function Topbar() {
 
       <div className="flex items-center gap-3">
         <button
+          type="button"
+          data-testid="notifications-btn"
           aria-label="Notifications"
           className="
           relative

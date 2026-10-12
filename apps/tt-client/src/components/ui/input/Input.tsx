@@ -8,12 +8,17 @@ export default function Input({
   error,
   className,
   size,
+  id,
   ...props
 }: InputProps) {
+  const inputId = id || (props.name ? `input-${props.name}` : undefined);
+  const testId = (props as any)['data-testid'] || (props.name ? `${props.name}-input` : undefined);
+
   return (
     <div className="space-y-2">
       {label && (
         <label
+          htmlFor={inputId}
           className="
           text-sm
           text-white/80
@@ -25,6 +30,8 @@ export default function Input({
       )}
 
       <input
+        id={inputId}
+        data-testid={testId}
         className={cn(
           inputVariants({
             state: error
@@ -38,7 +45,7 @@ export default function Input({
       />
 
       {error && (
-        <p className="text-sm text-red-300">
+        <p data-testid={testId ? `${testId}-error` : 'input-error'} className="text-sm text-red-300">
           {error}
         </p>
       )}

@@ -16,7 +16,7 @@ import { Tournament, TournamentSchema } from './schemas/tournament.schema';
       },
     ]),
   ],
-  providers: [TournamentResolver, TournamentService, JwtAuthGuard],
+  providers: [TournamentResolver, TournamentService],
   controllers: [TournamentController],
   exports: [TournamentService],
 })

@@ -6,9 +6,7 @@ import {
   IsBoolean,
   IsEnum,
   IsInt,
-  IsNotEmpty,
   IsOptional,
-  IsPositive,
   IsString,
   IsUrl,
   Length,
@@ -19,6 +17,7 @@ import { Type } from 'class-transformer';
 import { TournamentFormat } from '../enums/tournament-format.enum';
 import { TournamentType } from '../enums/tournament-type.enum';
 import { TournamentVisibility } from '../enums/tournament-visibility.enum';
+import { TournamentStatus } from '../enums/tournament-status.enum';
 
 @InputType()
 export class UpdateTournamentInput {
@@ -54,6 +53,11 @@ export class UpdateTournamentInput {
   @IsEnum(TournamentVisibility)
   @IsOptional()
   visibility?: TournamentVisibility;
+
+  @Field(() => TournamentStatus, { nullable: true })
+  @IsEnum(TournamentStatus)
+  @IsOptional()
+  status?: TournamentStatus;
 
   @Field({ nullable: true })
   @IsString()

@@ -10,7 +10,7 @@ import UpcomingMatches from '@/features/dashboard/components/UpcomingMatches';
 export default function DashboardPage() {
   return (
     <PageContainer>
-      <div className="space-y-6">
+      <div data-testid="dashboard-page" className="space-y-6">
         <DashboardHero />
 
         <DashboardStats />

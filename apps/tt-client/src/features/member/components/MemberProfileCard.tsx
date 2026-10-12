@@ -32,7 +32,7 @@ export default function MemberProfileCard({ member, onRefresh }: Props) {
   };
 
   return (
-    <div className="glass-card p-6 md:p-8">
+    <div data-testid="member-profile-card" className="glass-card p-6 md:p-8">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
           {/* Avatar */}
@@ -59,7 +59,7 @@ export default function MemberProfileCard({ member, onRefresh }: Props) {
           {/* Details */}
           <div>
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-2xl font-bold text-white tracking-tight">
+              <h1 data-testid="member-fullname" className="text-2xl font-bold text-white tracking-tight">
                 {member.fullName}
               </h1>
 
@@ -97,6 +97,7 @@ export default function MemberProfileCard({ member, onRefresh }: Props) {
         <div className="flex flex-wrap items-center gap-3">
           {member.isDeleted ? (
             <Button
+              data-testid="restore-member-profile-btn"
               variant="outline"
               size="md"
               loading={restoring}
@@ -108,6 +109,7 @@ export default function MemberProfileCard({ member, onRefresh }: Props) {
             </Button>
           ) : (
             <Button
+              data-testid="delete-member-profile-btn"
               variant="danger"
               size="md"
               loading={deleting}
@@ -120,6 +122,7 @@ export default function MemberProfileCard({ member, onRefresh }: Props) {
           )}
 
           <Button
+            data-testid="edit-member-profile-btn"
             variant="primary"
             size="md"
             onClick={() => navigate(`/members/${member.id}/edit`)}

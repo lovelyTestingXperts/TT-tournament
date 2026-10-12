@@ -14,10 +14,12 @@ export default function Button({
   rightIcon,
   loading,
   disabled,
+  type = 'button',
   ...props
 }: ButtonProps) {
   return (
     <button
+      type={type}
       disabled={loading || disabled}
       className={cn(
         buttonVariants({

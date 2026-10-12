@@ -38,6 +38,7 @@ export default function Sidebar() {
 
   return (
     <aside
+      data-testid="sidebar"
       className={`
       glass-sidebar
       relative
@@ -66,6 +67,8 @@ export default function Sidebar() {
         {!collapsed && <AppLogo />}
 
         <button
+          type="button"
+          data-testid="sidebar-toggle-btn"
           onClick={() => setCollapsed(!collapsed)}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           className="
@@ -97,11 +100,12 @@ export default function Sidebar() {
       </div>
 
       {/* Nav Menu Items */}
-      <nav className="flex-1 space-y-1.5 p-3">
+      <nav className="flex-1 space-y-1.5 p-3" aria-label="Main Navigation">
         {menuItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
+            data-testid={`nav-${item.label.toLowerCase()}`}
             className={({ isActive }) =>
               `
               group

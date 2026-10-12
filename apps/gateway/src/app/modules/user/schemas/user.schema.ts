@@ -61,6 +61,13 @@ export class User {
   role!: UserRole;
 
   @Prop({
+    type: [String],
+    enum: UserRole,
+    default: [UserRole.PLAYER],
+  })
+  roles!: UserRole[];
+
+  @Prop({
     default: null,
   })
   avatar?: string;

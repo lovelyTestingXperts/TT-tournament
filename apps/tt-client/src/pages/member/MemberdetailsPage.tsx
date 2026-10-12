@@ -15,7 +15,7 @@ export default function MemberDetailsPage() {
 
   if (loading) {
     return (
-      <div className="glass-card flex flex-col items-center justify-center p-14 text-slate-400">
+      <div data-testid="member-details-loading" className="glass-card flex flex-col items-center justify-center p-14 text-slate-400">
         <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
         <p className="mt-3 text-sm">Loading user profile...</p>
       </div>
@@ -24,12 +24,13 @@ export default function MemberDetailsPage() {
 
   if (error || !data?.user) {
     return (
-      <div className="glass-card p-10 text-center">
+      <div data-testid="member-not-found" className="glass-card p-10 text-center">
         <h3 className="text-base font-semibold text-white">User Not Found</h3>
         <p className="mt-1 text-sm text-slate-400">
           The requested user does not exist or may have been deleted.
         </p>
         <Button
+          data-testid="return-to-members-btn"
           variant="secondary"
           size="md"
           className="mt-4"
@@ -44,9 +45,10 @@ export default function MemberDetailsPage() {
   const member = data.user;
 
   return (
-    <div className="space-y-6">
+    <div data-testid="member-details-page" className="space-y-6">
       <div className="flex items-center gap-3">
         <Button
+          data-testid="back-to-members-btn"
           variant="secondary"
           size="sm"
           onClick={() => navigate('/members')}

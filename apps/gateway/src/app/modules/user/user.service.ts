@@ -24,7 +24,7 @@ import { UserSortField } from './enums/user-sort-field.enum';
 import { SortOrder } from './enums/sort-order.enum';
 import { UpdateUserInput } from './dto/update-user.input';
 import { USER_ERRORS } from './user.constants';
-import { UserRole } from '../../../shared/enums/user-role.enum';
+import { UserRole } from '../../shared/enums/user-role.enum';
 
 @Injectable()
 export class UsersService {
@@ -51,7 +51,8 @@ export class UsersService {
       const lastName = input.lastName.trim();
       const fullName = `${firstName} ${lastName}`.trim();
 
-      const role = (input as CreateUserInput).role ?? UserRole.MEMBER;
+      const role = (input as CreateUserInput).role ?? UserRole.PLAYER;
+      const roles = [role];
       const bio = (input as CreateUserInput).bio ?? null;
       const avatar = (input as CreateUserInput).avatar ?? null;
       const employeeId =
@@ -66,6 +67,7 @@ export class UsersService {
         password: hashedPassword,
         phoneNumber: input.phoneNumber?.trim() || null,
         role,
+        roles,
         bio,
         avatar,
         employeeId,
@@ -176,6 +178,10 @@ export class UsersService {
         throw new NotFoundException(USER_ERRORS.NOT_FOUND);
       }
 
+      if (!user.roles || user.roles.length === 0) {
+        user.roles = [user.role || UserRole.PLAYER];
+      }
+
       return user;
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -184,6 +190,16 @@ export class UsersService {
 
       throw new InternalServerErrorException(USER_ERRORS.DATABASE_ERROR);
     }
+  }
+
+  async findByEmailWithPassword(email: string): Promise<UserDocument | null> {
+    return this.userModel
+      .findOne({
+        email: email.toLowerCase().trim(),
+        isDeleted: false,
+      })
+      .select('+password')
+      .exec();
   }
 
   async update(id: string, input: UpdateUserInput): Promise<User> {

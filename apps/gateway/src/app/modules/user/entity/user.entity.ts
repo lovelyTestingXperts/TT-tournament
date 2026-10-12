@@ -37,6 +37,9 @@ export class UserEntity {
   @Field(() => UserRole)
   role!: UserRole;
 
+  @Field(() => [UserRole])
+  roles!: UserRole[];
+
   @Field()
   isEmailVerified!: boolean;
 

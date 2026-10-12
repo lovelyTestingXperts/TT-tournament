@@ -91,9 +91,9 @@ export default function MemberEditForm({ initialData, userId }: Props) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="glass-card p-6 md:p-8">
+    <form data-testid="edit-user-form" onSubmit={handleSubmit(onSubmit)} className="glass-card p-6 md:p-8">
       {errorMessage && (
-        <div className="mb-6 flex items-center gap-3 rounded-panel border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
+        <div data-testid="alert-error" className="mb-6 flex items-center gap-3 rounded-panel border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
           <AlertCircle className="size-5 shrink-0 text-red-400" />
           <span>{errorMessage}</span>
         </div>
@@ -102,10 +102,12 @@ export default function MemberEditForm({ initialData, userId }: Props) {
       <div className="grid gap-6 md:grid-cols-2">
         {/* First Name */}
         <div>
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+          <label htmlFor="user-edit-firstname-input" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
             First Name <span className="text-primary">*</span>
           </label>
           <Input
+            id="user-edit-firstname-input"
+            data-testid="user-edit-firstname-input"
             {...register('firstName')}
             placeholder="First name"
             error={errors.firstName?.message}
@@ -114,10 +116,12 @@ export default function MemberEditForm({ initialData, userId }: Props) {
 
         {/* Last Name */}
         <div>
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+          <label htmlFor="user-edit-lastname-input" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
             Last Name <span className="text-primary">*</span>
           </label>
           <Input
+            id="user-edit-lastname-input"
+            data-testid="user-edit-lastname-input"
             {...register('lastName')}
             placeholder="Last name"
             error={errors.lastName?.message}
@@ -126,10 +130,12 @@ export default function MemberEditForm({ initialData, userId }: Props) {
 
         {/* Phone */}
         <div>
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+          <label htmlFor="user-edit-phone-input" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
             Phone Number
           </label>
           <Input
+            id="user-edit-phone-input"
+            data-testid="user-edit-phone-input"
             {...register('phoneNumber')}
             placeholder="+1 555-0199"
             error={errors.phoneNumber?.message}
@@ -138,10 +144,12 @@ export default function MemberEditForm({ initialData, userId }: Props) {
 
         {/* Avatar URL */}
         <div>
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+          <label htmlFor="user-edit-avatar-input" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
             Avatar URL
           </label>
           <Input
+            id="user-edit-avatar-input"
+            data-testid="user-edit-avatar-input"
             {...register('avatar')}
             placeholder="https://..."
             error={errors.avatar?.message}
@@ -150,10 +158,12 @@ export default function MemberEditForm({ initialData, userId }: Props) {
 
         {/* Role */}
         <div>
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+          <label htmlFor="user-edit-role-select" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
             Role
           </label>
           <select
+            id="user-edit-role-select"
+            data-testid="user-edit-role-select"
             {...register('role')}
             className="
               h-10 w-full rounded-button
@@ -173,10 +183,12 @@ export default function MemberEditForm({ initialData, userId }: Props) {
 
         {/* Account Status */}
         <div>
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+          <label htmlFor="user-edit-status-select" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
             Account Status
           </label>
           <select
+            id="user-edit-status-select"
+            data-testid="user-edit-status-select"
             {...register('isActive', {
               setValueAs: (v) => v === 'true' || v === true,
             })}
@@ -196,10 +208,12 @@ export default function MemberEditForm({ initialData, userId }: Props) {
 
         {/* Bio */}
         <div className="md:col-span-2">
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+          <label htmlFor="user-edit-bio-input" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
             Bio / Notes
           </label>
           <Textarea
+            id="user-edit-bio-input"
+            data-testid="user-edit-bio-input"
             {...register('bio')}
             placeholder="Tell something about this user..."
             className="min-h-[120px]"
@@ -210,6 +224,7 @@ export default function MemberEditForm({ initialData, userId }: Props) {
       {/* Action buttons */}
       <div className="mt-8 flex items-center justify-end gap-3 border-t border-white/[0.07] pt-6">
         <Button
+          data-testid="cancel-btn"
           type="button"
           variant="secondary"
           onClick={() => navigate(`/members/${userId}`)}
@@ -217,7 +232,7 @@ export default function MemberEditForm({ initialData, userId }: Props) {
           Cancel
         </Button>
 
-        <Button type="submit" variant="primary" loading={loading}>
+        <Button data-testid="submit-user-edit-btn" type="submit" variant="primary" loading={loading}>
           <CheckCircle2 className="size-4" />
           <span>Save Changes</span>
         </Button>

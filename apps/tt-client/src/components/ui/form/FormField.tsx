@@ -1,11 +1,13 @@
 type Props = {
   label?: string;
+  htmlFor?: string;
   error?: string;
   children: React.ReactNode;
 };
 
 export default function FormField({
   label,
+  htmlFor,
   error,
   children,
 }: Props) {
@@ -13,6 +15,7 @@ export default function FormField({
     <div className="space-y-2">
       {label && (
         <label
+          htmlFor={htmlFor}
           className="
           text-sm
           font-medium
@@ -26,7 +29,7 @@ export default function FormField({
       {children}
 
       {error && (
-        <p className="text-sm text-red-300">
+        <p data-testid="form-field-error" className="text-sm text-red-300">
           {error}
         </p>
       )}

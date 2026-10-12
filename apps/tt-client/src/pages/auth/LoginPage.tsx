@@ -1,36 +1,59 @@
+import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Trophy } from 'lucide-react';
+import { Trophy, AlertCircle } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useMutation } from '@apollo/client/react';
+
 import Button from '@/components/ui/button/Button';
 import FormInput from '@/components/ui/form/FormInput';
 import FormPasswordInput from '@/components/ui/form/FormPasswordInput';
-
 import {
   LoginFormData,
   loginSchema,
 } from '@/features/auth/schemas/login.schema';
-import InteractiveCard from '@/components/ui/card/InteractiveCard';
-import StatCard from '@/components/ui/card/StatCard';
-import Card from '@/components/ui/card/Card';
+import { LOGIN_MUTATION } from '@/features/auth/graphql/mutations';
 
 export default function LoginPage() {
+  const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const { handleSubmit, control } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
 
+  const [loginMutation, { loading }] = useMutation(LOGIN_MUTATION, {
+    onCompleted: (data) => {
+      const { accessToken, user } = data.login;
+      localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      navigate('/');
+    },
+    onError: (error) => {
+      setErrorMessage(error.message || 'Login failed. Please check your credentials.');
+    },
+  });
+
   const onSubmit = (data: LoginFormData) => {
-    console.log(data);
+    setErrorMessage(null);
+    loginMutation({
+      variables: {
+        input: {
+          email: data.email,
+          password: data.password,
+        },
+      },
+    });
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
+    <div data-testid="login-page" className="flex min-h-screen items-center justify-center px-4">
       <div
         className="
         glass-card
         w-full
         max-w-[460px]
-        rounded-[36px]
+        rounded-card
         p-8
         md:p-10
       "
@@ -47,8 +70,10 @@ export default function LoginPage() {
             items-center
             justify-center
             rounded-full
-            bg-white/10
-            backdrop-blur-xl
+            bg-primary/10
+            text-primary
+            border
+            border-primary/30
           "
           >
             <Trophy size={28} />
@@ -59,6 +84,7 @@ export default function LoginPage() {
             text-3xl
             font-bold
             tracking-tight
+            text-white
           "
           >
             Welcome Back
@@ -68,15 +94,26 @@ export default function LoginPage() {
             className="
             mt-2
             text-sm
-            text-white/65
+            text-slate-400
           "
           >
             Sign in to manage tournaments, matches and registrations.
           </p>
         </div>
 
+        {/* Error Alert */}
+        {errorMessage && (
+          <div
+            data-testid="alert-error"
+            className="mb-6 flex items-center gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3.5 text-sm text-red-400"
+          >
+            <AlertCircle className="h-5 w-5 shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
         {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <form data-testid="login-form" onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <FormInput
             name="email"
             control={control}
@@ -94,9 +131,10 @@ export default function LoginPage() {
           <div className="flex justify-end">
             <button
               type="button"
+              data-testid="forgot-password-btn"
               className="
               text-sm
-              text-white/60
+              text-slate-400
               transition
               hover:text-white
             "
@@ -105,8 +143,14 @@ export default function LoginPage() {
             </button>
           </div>
 
-          <Button className="w-full" type="submit" size="lg">
-            Login
+          <Button
+            data-testid="login-submit-btn"
+            className="w-full"
+            type="submit"
+            size="lg"
+            disabled={loading}
+          >
+            {loading ? 'Signing in...' : 'Login'}
           </Button>
         </form>
 
@@ -116,17 +160,18 @@ export default function LoginPage() {
           mt-6
           text-center
           text-sm
-          text-white/60
+          text-slate-400
         "
         >
           Don&apos;t have an account?{' '}
           <Link
             to="/register"
+            data-testid="register-link"
             className="
             font-medium
-            text-violet-300
+            text-primary
             transition
-            hover:text-violet-200
+            hover:underline
           "
           >
             Create account
