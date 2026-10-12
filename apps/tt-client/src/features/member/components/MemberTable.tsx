@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   MoreVertical,
   UserX,
+  UserCheck,
   ExternalLink,
   Edit2,
   Trash2,
@@ -10,7 +11,7 @@ import {
 import moment from 'moment-timezone';
 import RoleBadge from './RoleBadge';
 import StatusBadge from './StatusBadge';
-import { useDeleteUser } from '@/features/member/graphql/hooks';
+import { useDeleteUser, useUpdateUser } from '@/features/member/graphql/hooks';
 
 type Member = {
   id: string;
@@ -49,7 +50,25 @@ export default function MemberTable({
   const navigate = useNavigate();
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [deleteUser, { loading: deleting }] = useDeleteUser();
+  const [updateUser, { loading: updating }] = useUpdateUser();
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const handleToggleActive = async (member: Member) => {
+    setActiveMenuId(null);
+    try {
+      await updateUser({
+        variables: {
+          id: member.id,
+          input: {
+            isActive: !member.isActive,
+          },
+        },
+      });
+      if (onRefresh) onRefresh();
+    } catch (err: any) {
+      alert(`Failed to update status: ${err.message || 'Unknown error'}`);
+    }
+  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -80,7 +99,7 @@ export default function MemberTable({
 
   if (!members.length) {
     return (
-      <div className="glass-card flex flex-col items-center justify-center p-16 text-center">
+      <div data-testid="empty-state" className="glass-card flex flex-col items-center justify-center p-16 text-center">
         <div className="flex size-14 items-center justify-center rounded-panel border border-white/[0.08] bg-white/[0.03] text-slate-500">
           <UserX className="size-7" />
         </div>
@@ -256,6 +275,30 @@ export default function MemberTable({
                     >
                       <Edit2 className="size-3.5 text-slate-400" />
                       <span>Edit Member</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      data-testid={`toggle-status-btn-${member.id}`}
+                      disabled={updating}
+                      onClick={() => handleToggleActive(member)}
+                      className={`flex w-full items-center gap-2.5 rounded-button px-3 py-2 text-xs font-medium ${
+                        member.isActive
+                          ? 'text-amber-400 hover:bg-amber-500/10 hover:text-amber-300'
+                          : 'text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300'
+                      }`}
+                    >
+                      {member.isActive ? (
+                        <>
+                          <UserX className="size-3.5" />
+                          <span>Deactivate User</span>
+                        </>
+                      ) : (
+                        <>
+                          <UserCheck className="size-3.5" />
+                          <span>Activate User</span>
+                        </>
+                      )}
                     </button>
 
                     <button

@@ -3,6 +3,7 @@ import {
   InputType,
 } from '@nestjs/graphql';
 import {
+  IsDate,
   IsEnum,
   IsInt,
   IsNotEmpty,
@@ -73,14 +74,17 @@ export class CreateTournamentInput {
 
   @Field(() => Date)
   @Type(() => Date)
+  @IsDate()
   @Validate(StartDateAfterRegistrationDeadline)
   startDate!: Date;
 
   @Field(() => Date)
   @Type(() => Date)
+  @IsDate()
   endDate!: Date;
 
   @Field(() => Date)
   @Type(() => Date)
+  @IsDate()
   registrationDeadline!: Date;
 }

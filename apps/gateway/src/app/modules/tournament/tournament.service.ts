@@ -209,7 +209,7 @@ export class TournamentService {
       }
 
       const updated = await this.tournamentModel
-        .findByIdAndUpdate(id, updatePayload, { new: true })
+        .findByIdAndUpdate(id, updatePayload, { returnDocument: 'after' })
         .exec();
 
       if (!updated) {

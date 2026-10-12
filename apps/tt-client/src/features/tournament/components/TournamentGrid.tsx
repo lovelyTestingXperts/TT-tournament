@@ -28,7 +28,7 @@ export default function TournamentGrid({ tournaments, loading }: Props) {
 
   if (!tournaments.length) {
     return (
-      <div data-testid="empty-tournaments-state" className="glass-card flex flex-col items-center justify-center p-16 text-center">
+      <div data-testid="empty-state" className="glass-card flex flex-col items-center justify-center p-16 text-center">
         <div className="flex size-14 items-center justify-center rounded-panel border border-white/[0.08] bg-white/[0.03] text-slate-500">
           <Trophy className="size-7" />
         </div>

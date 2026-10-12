@@ -25,13 +25,19 @@ export default function MemberStats({ members }: MemberStatsProps) {
     },
     {
       title: 'Active Players',
-      value: members.filter((member) => member.role?.includes('player')).length,
+      value: members.filter((member) => {
+        const r = String(member.role || '').toLowerCase();
+        return r.includes('player') && member.isActive;
+      }).length,
       icon: Trophy,
       color: 'from-amber-500/20 to-amber-500/5 text-amber-400 border-amber-500/30',
     },
     {
       title: 'Referees',
-      value: members.filter((member) => member.role?.includes('referee')).length,
+      value: members.filter((member) => {
+        const r = String(member.role || '').toLowerCase();
+        return r.includes('referee');
+      }).length,
       icon: Shield,
       color: 'from-rose-500/20 to-rose-500/5 text-rose-400 border-rose-500/30',
     },

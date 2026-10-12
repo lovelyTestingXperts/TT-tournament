@@ -211,7 +211,9 @@ export class UsersService {
       };
 
       if (input.role) {
-        updatePayload.role = input.role.toLowerCase() as UserRole;
+        const lowerRole = input.role.toLowerCase() as UserRole;
+        updatePayload.role = lowerRole;
+        updatePayload.roles = [lowerRole];
       }
 
       const firstName = input.firstName ?? user.firstName;
@@ -221,7 +223,7 @@ export class UsersService {
 
       const updatedUser = await this.userModel
         .findByIdAndUpdate(id, updatePayload, {
-          new: true,
+          returnDocument: 'after',
         })
         .exec();
 

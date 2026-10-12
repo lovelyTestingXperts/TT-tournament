@@ -1,29 +1,16 @@
+import { useNavigate } from 'react-router-dom';
 import StatusBadge from '@/components/ui/badge/StatusBadge';
-
-const tournaments = [
-  {
-    id: 1,
-    name: 'Winter Cup',
-    players: 120,
-    status: 'active',
-  },
-  {
-    id: 2,
-    name: 'Championship League',
-    players: 84,
-    status: 'upcoming',
-  },
-  {
-    id: 3,
-    name: 'Knockout Battle',
-    players: 64,
-    status: 'completed',
-  },
-];
+import { useTournaments } from '@/features/tournament/graphql/hooks';
+import { Trophy } from 'lucide-react';
 
 export default function RecentTournaments() {
+  const navigate = useNavigate();
+  const { data, loading } = useTournaments({ limit: 5 });
+
+  const tournaments = data?.tournaments?.items ?? [];
+
   return (
-    <div className="glass-card rounded-[32px] p-6">
+    <div data-testid="recent-tournaments-card" className="glass-card rounded-[32px] p-6">
       <div
         className="
         mb-5
@@ -32,65 +19,72 @@ export default function RecentTournaments() {
         justify-between
       "
       >
-        <h2 className="text-xl font-semibold">
+        <h2 className="text-xl font-semibold text-white">
           Recent Tournaments
         </h2>
 
-        <button className="text-sm text-violet-300">
+        <button
+          type="button"
+          data-testid="view-all-tournaments-btn"
+          onClick={() => navigate('/tournaments')}
+          className="text-sm font-medium text-primary hover:underline transition-all"
+        >
           View All
         </button>
       </div>
 
-      <div className="space-y-3">
-        {tournaments.map(
-          (tournament) => (
-            <div
-              key={
-                tournament.id
-              }
-              className="
-              flex
-              items-center
-              justify-between
-              rounded-3xl
-              bg-white/5
-              p-4
-              transition
-              hover:bg-white/10
-            "
-            >
-              <div>
-                <h3 className="font-medium">
-                  {
-                    tournament.name
-                  }
-                </h3>
+      {loading ? (
+        <div className="flex h-32 items-center justify-center text-slate-400">
+          <div className="size-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        </div>
+      ) : tournaments.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-8 text-center text-slate-400">
+          <Trophy className="size-8 text-slate-500 mb-2" />
+          <p className="text-sm">No tournaments scheduled yet.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {tournaments.map((tournament: any) => {
+            const rawStatus = (tournament.status || 'UPCOMING').toLowerCase();
+            const badgeStatus =
+              rawStatus === 'ongoing' ? 'active' : rawStatus === 'completed' ? 'completed' : 'upcoming';
 
-                <p
-                  className="
-                  text-sm
-                  text-white/50
-                "
-                >
-                  {
-                    tournament.players
-                  }{' '}
-                  Players
-                </p>
+            return (
+              <div
+                key={tournament.id}
+                data-testid={`tournament-row-${tournament.id}`}
+                onClick={() => navigate(`/tournaments/${tournament.id}`)}
+                className="
+                flex
+                cursor-pointer
+                items-center
+                justify-between
+                rounded-2xl
+                border
+                border-white/[0.06]
+                bg-white/[0.03]
+                p-4
+                transition
+                hover:border-white/10
+                hover:bg-white/[0.06]
+              "
+              >
+                <div>
+                  <h3 className="font-medium text-white hover:text-primary transition-colors">
+                    {tournament.name}
+                  </h3>
+
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {tournament.participants?.length || 0} / {tournament.maxPlayers || 64} Players • {tournament.format || 'Single Elimination'}
+                  </p>
+                </div>
+
+                <StatusBadge status={badgeStatus} />
               </div>
-
-              <StatusBadge
-                status={
-                  tournament.status as
-                    | 'active'
-                    | 'upcoming'
-                    | 'completed'
-                }
-              />
-            </div>
-          )
-        )}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

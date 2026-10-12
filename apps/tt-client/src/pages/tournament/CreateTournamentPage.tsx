@@ -10,24 +10,49 @@ import Input from '@/components/ui/input/Input';
 import Textarea from '@/components/ui/input/TextArea';
 import { useCreateTournament } from '@/features/tournament/graphql/hooks';
 
-const tournamentFormSchema = z.object({
-  name: z.string().min(3, 'Tournament title must be at least 3 characters'),
-  description: z.string().optional(),
-  category: z.string().min(1, 'Category is required (e.g. Cricket, FIFA, Chess)'),
-  type: z.enum(['ONLINE', 'OFFLINE']),
-  format: z.enum([
-    'SINGLE_ELIMINATION',
-    'DOUBLE_ELIMINATION',
-    'ROUND_ROBIN',
-    'LEAGUE',
-  ]),
-  visibility: z.enum(['PUBLIC', 'PRIVATE']),
-  maxPlayers: z.coerce.number().min(2, 'Must have at least 2 participants'),
-  prizePool: z.coerce.number().min(0).optional(),
-  startDate: z.string().min(1, 'Start date is required'),
-  endDate: z.string().min(1, 'End date is required'),
-  registrationDeadline: z.string().min(1, 'Registration deadline is required'),
-});
+const tournamentFormSchema = z
+  .object({
+    name: z.string().min(3, 'Tournament title must be at least 3 characters'),
+    description: z.string().optional(),
+    category: z.string().min(1, 'Category is required (e.g. Cricket, FIFA, Chess)'),
+    type: z.enum(['ONLINE', 'OFFLINE']),
+    format: z.enum([
+      'SINGLE_ELIMINATION',
+      'DOUBLE_ELIMINATION',
+      'ROUND_ROBIN',
+      'LEAGUE',
+    ]),
+    visibility: z.enum(['PUBLIC', 'PRIVATE']),
+    maxPlayers: z.coerce.number().min(2, 'Must have at least 2 participants'),
+    prizePool: z.coerce.number().min(0).optional(),
+    startDate: z.string().min(1, 'Start date is required'),
+    endDate: z.string().min(1, 'End date is required'),
+    registrationDeadline: z.string().min(1, 'Registration deadline is required'),
+  })
+  .refine(
+    (data) => {
+      if (data.startDate && data.registrationDeadline) {
+        return new Date(data.startDate).getTime() > new Date(data.registrationDeadline).getTime();
+      }
+      return true;
+    },
+    {
+      message: 'Start date must be after registration deadline',
+      path: ['startDate'],
+    },
+  )
+  .refine(
+    (data) => {
+      if (data.endDate && data.startDate) {
+        return new Date(data.endDate).getTime() >= new Date(data.startDate).getTime();
+      }
+      return true;
+    },
+    {
+      message: 'End date must be on or after start date',
+      path: ['endDate'],
+    },
+  );
 
 type TournamentFormValues = z.infer<typeof tournamentFormSchema>;
 

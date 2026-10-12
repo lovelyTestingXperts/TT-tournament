@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import PageContainer from '@/components/layout/PageContainer';
+import Input from '@/components/ui/input/Input';
+import Textarea from '@/components/ui/input/TextArea';
+import Button from '@/components/ui/button/Button';
 import TournamentHero from '@/features/tournament/components/TournamentHero';
 import TournamentOverview from '@/features/tournament/components/TournamentOverview';
 import TournamentTabs from '@/features/tournament/components/TournamentTabs';
@@ -13,10 +16,12 @@ import {
   useRegisterTournament,
   useUpdateTournament,
 } from '@/features/tournament/graphql/hooks';
+import { useAuth } from '@/features/auth/context/AuthContext';
 
 export default function TournamentDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'participants' | 'matches' | 'settings'>('overview');
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -27,6 +32,20 @@ export default function TournamentDetailsPage() {
   const [updateTournament, { loading: isUpdating }] = useUpdateTournament();
 
   const tournament = data?.tournament;
+
+  const [editName, setEditName] = useState('');
+  const [editCategory, setEditCategory] = useState('');
+  const [editPrizePool, setEditPrizePool] = useState<number | string>(0);
+  const [editDescription, setEditDescription] = useState('');
+
+  useEffect(() => {
+    if (tournament) {
+      setEditName(tournament.name || '');
+      setEditCategory(tournament.category || '');
+      setEditPrizePool(tournament.prizePool ?? 0);
+      setEditDescription(tournament.description || '');
+    }
+  }, [tournament]);
 
   const handleDelete = async () => {
     if (!id) return;
@@ -45,14 +64,10 @@ export default function TournamentDetailsPage() {
     try {
       setActionSuccess(null);
       setActionError(null);
-      // Generate a mock or active user ID for registration
-      const participantId = `user_${Date.now().toString(36)}`;
       await registerTournament({
         variables: {
-          input: {
-            tournamentId: id,
-            userId: participantId,
-          },
+          id,
+          participantId: user?.id,
         },
       });
       setActionSuccess('Successfully registered for tournament!');
@@ -69,8 +84,8 @@ export default function TournamentDetailsPage() {
       setActionError(null);
       await updateTournament({
         variables: {
+          id,
           input: {
-            id,
             status: newStatus,
           },
         },
@@ -79,6 +94,30 @@ export default function TournamentDetailsPage() {
       await refetch();
     } catch (err: any) {
       setActionError(err.message || 'Failed to update status');
+    }
+  };
+
+  const handleSaveDetails = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id) return;
+    try {
+      setActionSuccess(null);
+      setActionError(null);
+      await updateTournament({
+        variables: {
+          id,
+          input: {
+            name: editName,
+            category: editCategory,
+            prizePool: Number(editPrizePool) || 0,
+            description: editDescription,
+          },
+        },
+      });
+      setActionSuccess('Tournament details updated successfully!');
+      await refetch();
+    } catch (err: any) {
+      setActionError(err.message || 'Failed to update tournament details');
     }
   };
 
@@ -175,8 +214,81 @@ export default function TournamentDetailsPage() {
           <div data-testid="tab-content-settings" className="glass-card rounded-card p-6 space-y-6">
             <div>
               <h3 className="text-lg font-bold text-white">Tournament Control Panel</h3>
-              <p className="text-xs text-slate-400">Change operational status or manage tournament lifecycle</p>
+              <p className="text-xs text-slate-400">Edit tournament parameters, operational status, or lifecycle</p>
             </div>
+
+            {/* General Information Edit Form */}
+            <form data-testid="edit-tournament-form" onSubmit={handleSaveDetails} className="space-y-4 border-b border-white/10 pb-6">
+              <h4 className="text-sm font-semibold text-white">General Information</h4>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="tournament-edit-name-input" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    Tournament Title <span className="text-primary">*</span>
+                  </label>
+                  <Input
+                    id="tournament-edit-name-input"
+                    data-testid="tournament-edit-name-input"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    placeholder="Title"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="tournament-edit-category-input" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    Category
+                  </label>
+                  <Input
+                    id="tournament-edit-category-input"
+                    data-testid="tournament-edit-category-input"
+                    value={editCategory}
+                    onChange={(e) => setEditCategory(e.target.value)}
+                    placeholder="Category"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="tournament-edit-prize-pool-input" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    Prize Pool (USD)
+                  </label>
+                  <Input
+                    id="tournament-edit-prize-pool-input"
+                    data-testid="tournament-edit-prize-pool-input"
+                    type="number"
+                    value={editPrizePool}
+                    onChange={(e) => setEditPrizePool(e.target.value)}
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="tournament-edit-description-input" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-400">
+                  Description
+                </label>
+                <Textarea
+                  id="tournament-edit-description-input"
+                  data-testid="tournament-edit-description-input"
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  placeholder="Tournament description..."
+                  className="min-h-[80px]"
+                />
+              </div>
+
+              <div className="flex justify-end">
+                <Button
+                  data-testid="save-tournament-settings-btn"
+                  type="submit"
+                  variant="primary"
+                  size="sm"
+                  loading={isUpdating}
+                >
+                  Save Changes
+                </Button>
+              </div>
+            </form>
 
             <div className="space-y-4">
               <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">

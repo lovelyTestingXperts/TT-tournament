@@ -1,41 +1,70 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Trophy, AlertCircle } from 'lucide-react';
+import { Trophy, AlertCircle, ShieldAlert } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useMutation } from '@apollo/client/react';
 
 import Button from '@/components/ui/button/Button';
 import FormInput from '@/components/ui/form/FormInput';
 import FormPasswordInput from '@/components/ui/form/FormPasswordInput';
+import ErrorAlert from '@/components/ui/feedback/ErrorAlert';
 import {
   LoginFormData,
   loginSchema,
 } from '@/features/auth/schemas/login.schema';
 import { LOGIN_MUTATION } from '@/features/auth/graphql/mutations';
+import { useAuth } from '@/features/auth/context/AuthContext';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [accountInactiveNotice, setAccountInactiveNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (location.state?.accountInactive) {
+      setAccountInactiveNotice(
+        'Your account has been deactivated or is awaiting Admin approval. Please contact the administrator.',
+      );
+    }
+  }, [location.state]);
 
   const { handleSubmit, control } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
   });
 
   const [loginMutation, { loading }] = useMutation(LOGIN_MUTATION, {
     onCompleted: (data) => {
       const { accessToken, user } = data.login;
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      navigate('/');
+      if (!user.isActive) {
+        setAccountInactiveNotice(
+          'Your account is currently inactive or awaiting approval. Access cannot be granted.',
+        );
+        return;
+      }
+      login(accessToken, user);
+      const destination = (location.state as any)?.from?.pathname || '/';
+      navigate(destination, { replace: true });
     },
     onError: (error) => {
-      setErrorMessage(error.message || 'Login failed. Please check your credentials.');
+      const msg = error.message || 'Login failed. Please check your credentials.';
+      if (msg.toLowerCase().includes('approval') || msg.toLowerCase().includes('deactivated') || msg.toLowerCase().includes('inactive')) {
+        setAccountInactiveNotice(msg);
+      } else {
+        setErrorMessage(msg);
+      }
     },
   });
 
   const onSubmit = (data: LoginFormData) => {
     setErrorMessage(null);
+    setAccountInactiveNotice(null);
     loginMutation({
       variables: {
         input: {
@@ -101,16 +130,22 @@ export default function LoginPage() {
           </p>
         </div>
 
+        {/* Account Inactive Notice Alert */}
+        <ErrorAlert
+          variant="warning"
+          title="Account Inactive / Pending"
+          message={accountInactiveNotice}
+          className="mb-6"
+          onClose={() => setAccountInactiveNotice(null)}
+        />
+
         {/* Error Alert */}
-        {errorMessage && (
-          <div
-            data-testid="alert-error"
-            className="mb-6 flex items-center gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3.5 text-sm text-red-400"
-          >
-            <AlertCircle className="h-5 w-5 shrink-0" />
-            <span>{errorMessage}</span>
-          </div>
-        )}
+        <ErrorAlert
+          variant="error"
+          message={errorMessage}
+          className="mb-6"
+          onClose={() => setErrorMessage(null)}
+        />
 
         {/* Form */}
         <form data-testid="login-form" onSubmit={handleSubmit(onSubmit)} className="space-y-5">

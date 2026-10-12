@@ -49,5 +49,9 @@ Thumbs.db
 .nx/self-healing
 vite.config.*.timestamp*
 test-output
+playwright-report
+playwright/.cache
+test-results
+blob-report
 
 .env

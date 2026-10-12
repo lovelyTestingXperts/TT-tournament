@@ -1,25 +1,10 @@
 import {
   Field,
-  Int,
   ObjectType,
 } from '@nestjs/graphql';
 
 import { TournamentEntity } from './tournament.entity';
-
-@ObjectType()
-class PaginationMeta {
-  @Field(() => Int)
-  total!: number;
-
-  @Field(() => Int)
-  page!: number;
-
-  @Field(() => Int)
-  limit!: number;
-
-  @Field(() => Int)
-  totalPages!: number;
-}
+import { PaginationMeta } from '../../../shared/dto/pagination-meta.entity';
 
 @ObjectType()
 export class PaginatedTournamentsEntity {

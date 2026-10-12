@@ -8,6 +8,7 @@ import { useMutation } from '@apollo/client/react';
 import Button from '@/components/ui/button/Button';
 import FormInput from '@/components/ui/form/FormInput';
 import FormPasswordInput from '@/components/ui/form/FormPasswordInput';
+import ErrorAlert from '@/components/ui/feedback/ErrorAlert';
 import {
   RegisterFormData,
   registerSchema,
@@ -21,6 +22,14 @@ export default function RegisterPage() {
 
   const { control, handleSubmit } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      phoneNumber: '',
+      password: '',
+      confirmPassword: '',
+    },
   });
 
   const [registerMutation, { loading }] = useMutation(REGISTER_MUTATION, {
@@ -98,15 +107,12 @@ export default function RegisterPage() {
         </div>
 
         {/* Feedback Alerts */}
-        {errorMessage && (
-          <div
-            data-testid="alert-error"
-            className="mb-6 flex items-center gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3.5 text-sm text-red-400"
-          >
-            <AlertCircle className="h-5 w-5 shrink-0" />
-            <span>{errorMessage}</span>
-          </div>
-        )}
+        <ErrorAlert
+          variant="error"
+          message={errorMessage}
+          className="mb-6"
+          onClose={() => setErrorMessage(null)}
+        />
 
         {successMessage && (
           <div

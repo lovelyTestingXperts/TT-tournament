@@ -11,10 +11,14 @@ export default function PasswordInput({
   error,
   className,
   size,
+  id,
   ...props
 }: InputProps) {
   const [show, setShow] =
     useState(false);
+
+  const inputId = id || (props.name ? `input-${props.name}` : undefined);
+  const testId = (props as any)['data-testid'] || (props.name ? `${props.name}-input` : undefined);
 
   return (
     <div className="space-y-2">
@@ -26,6 +30,8 @@ export default function PasswordInput({
 
       <div className="relative">
         <input
+          id={inputId}
+          data-testid={testId}
           type={
             show
               ? 'text'
@@ -66,7 +72,7 @@ export default function PasswordInput({
       </div>
 
       {error && (
-        <p className="text-sm text-red-300">
+        <p data-testid={testId ? `${testId}-error` : 'password-error'} className="text-sm text-red-300">
           {error}
         </p>
       )}

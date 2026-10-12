@@ -28,8 +28,8 @@ export class UserEntity {
   @Field()
   email!: string;
   
-  @Field()
-  employeeId!: string;
+  @Field({ nullable: true })
+  employeeId?: string;
 
   @Field({ nullable: true })
   phoneNumber?: string;

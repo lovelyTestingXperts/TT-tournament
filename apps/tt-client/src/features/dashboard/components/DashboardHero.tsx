@@ -1,6 +1,9 @@
+import { useNavigate } from 'react-router-dom';
 import Button from '@/components/ui/button/Button';
 
 export default function DashboardHero() {
+  const navigate = useNavigate();
+
   return (
     <section
       className="
@@ -68,13 +71,19 @@ export default function DashboardHero() {
         </p>
 
         <div className="mt-8 flex gap-4">
-          <Button size="lg">
+          <Button
+            data-testid="hero-create-tournament-btn"
+            size="lg"
+            onClick={() => navigate('/tournaments/create')}
+          >
             Create Tournament
           </Button>
 
           <Button
+            data-testid="hero-view-matches-btn"
             size="lg"
             variant="secondary"
+            onClick={() => navigate('/matches')}
           >
             View Matches
           </Button>

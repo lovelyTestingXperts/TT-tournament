@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom';
 
 import DashboardLayout from '@/app/layouts/DashboardLayout';
 import AuthLayout from '@/app/layouts/AuthLayout';
+import ProtectedRoute from '@/app/layouts/ProtectedRoute';
 
 import LoginPage from '@/pages/auth/LoginPage';
 import RegisterPage from '@/pages/auth/RegisterPage';
@@ -12,86 +13,79 @@ import TournamentPage from '@/pages/tournament/TournamentPage';
 import CreateTournamentPage from '@/pages/tournament/CreateTournamentPage';
 import TournamentDetailsPage from '@/pages/tournament/TournamentDetailsPage';
 
-
 import MatchesPage from '@/pages/match/MatchesPage';
 import MemberPage from '@/pages/member/MemberPage';
 import MemberDetailsPage from '@/pages/member/MemberdetailsPage';
 import EditMemberPage from '@/pages/member/EditMemberPage';
 import CreateMemberPage from '@/pages/member/CreateMemberPage';
 
-export const router =
-  createBrowserRouter([
-    {
-      element: <AuthLayout />,
+export const router = createBrowserRouter([
+  // Public Auth Routes
+  {
+    element: <AuthLayout />,
+    children: [
+      {
+        path: '/login',
+        element: <LoginPage />,
+      },
+      {
+        path: '/register',
+        element: <RegisterPage />,
+      },
+    ],
+  },
 
-      children: [
-        {
-          path: '/login',
-          element: <LoginPage />,
-        },
-        {
-          path: '/register',
-          element: <RegisterPage />,
-        },
-      ],
-    },
+  // Protected App Routes (Mandatory Authentication)
+  {
+    element: <ProtectedRoute />,
+    children: [
+      {
+        element: <DashboardLayout />,
+        children: [
+          {
+            path: '/',
+            element: <DashboardPage />,
+          },
 
-    {
-      element: <DashboardLayout />,
+          // tournaments
+          {
+            path: '/tournaments',
+            element: <TournamentPage />,
+          },
+          {
+            path: '/tournaments/create',
+            element: <CreateTournamentPage />,
+          },
+          {
+            path: '/tournaments/:id',
+            element: <TournamentDetailsPage />,
+          },
 
-      children: [
-        {
-          path: '/',
-          element: <DashboardPage />,
-        },
+          // users / members
+          {
+            path: '/members',
+            element: <MemberPage />,
+          },
+          {
+            path: '/members/create',
+            element: <CreateMemberPage />,
+          },
+          {
+            path: '/members/:id',
+            element: <MemberDetailsPage />,
+          },
+          {
+            path: '/members/:id/edit',
+            element: <EditMemberPage />,
+          },
 
-        // tournaments
-        {
-          path: '/tournaments',
-          element: <TournamentPage />,
-        },
-        {
-          path:
-            '/tournaments/create',
-          element:
-            <CreateTournamentPage />,
-        },
-        {
-          path:
-            '/tournaments/:id',
-          element:
-            <TournamentDetailsPage />,
-        },
-
-        // users / members
-        {
-          path: '/members',
-          element: <MemberPage />,
-        },
-        {
-          path:
-            '/members/create',
-          element:
-            <CreateMemberPage />,
-        },
-        {
-          path:
-            '/members/:id',
-          element:
-            <MemberDetailsPage />,
-        },
-        {
-          path:
-            '/members/:id/edit',
-          element:
-            <EditMemberPage />,
-        },
-
-        // matches
-        {
-          path: '/matches',
-          element: <MatchesPage />,
-        },
-      ],
-    },
-  ]);
+          // matches
+          {
+            path: '/matches',
+            element: <MatchesPage />,
+          },
+        ],
+      },
+    ],
+  },
+]);

@@ -5,6 +5,8 @@ interface Props {
 export default function StatusBadge({ active }: Props) {
   return (
     <span
+      data-testid="status-badge"
+      data-status={active ? 'active' : 'inactive'}
       className={`
         inline-flex items-center gap-1.5
         rounded-badge border

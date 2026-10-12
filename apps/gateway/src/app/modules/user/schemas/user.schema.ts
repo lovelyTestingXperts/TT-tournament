@@ -94,7 +94,6 @@ export class User {
   refreshToken?: string;
   @Prop({
     default: null,
-    select: false,
   })
   employeeId?: string;
 
@@ -121,10 +120,6 @@ export class User {
 
 export const UserSchema =
   SchemaFactory.createForClass(User);
-
-UserSchema.index({
-  email: 1,
-});
 
 UserSchema.index({
   role: 1,
