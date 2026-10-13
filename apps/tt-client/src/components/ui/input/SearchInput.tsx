@@ -1,8 +1,9 @@
 import { Search } from 'lucide-react';
 
 import Input from './Input';
+import { InputProps } from './input.types';
 
-export default function SearchInput() {
+export default function SearchInput(props: InputProps) {
   return (
     <div className="relative">
       <Search
@@ -19,6 +20,7 @@ export default function SearchInput() {
       <Input
         className="pl-12"
         placeholder="Search..."
+        {...props}
       />
     </div>
   );

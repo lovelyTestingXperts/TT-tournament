@@ -98,7 +98,7 @@ export default function MemberProfileCard({ member, onRefresh }: Props) {
           {member.isDeleted ? (
             <Button
               data-testid="restore-member-profile-btn"
-              variant="outline"
+              variant="secondary"
               size="md"
               loading={restoring}
               onClick={handleRestore}

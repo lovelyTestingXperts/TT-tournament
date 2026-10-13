@@ -38,10 +38,10 @@ export class StartDateAfterRegistrationDeadlineConstraint
 export function StartDateAfterRegistrationDeadline(
   validationOptions?: ValidationOptions,
 ): PropertyDecorator {
-  return (object: object, propertyName: string) => {
+  return (object: object, propertyName: string | symbol) => {
     registerDecorator({
       target: object.constructor,
-      propertyName,
+      propertyName: propertyName as string,
       options: validationOptions,
       constraints: [],
       validator:

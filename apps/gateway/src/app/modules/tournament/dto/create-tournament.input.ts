@@ -8,7 +8,6 @@ import {
   IsInt,
   IsNotEmpty,
   IsOptional,
-  IsPositive,
   IsString,
   IsUrl,
   Length,
@@ -41,6 +40,33 @@ export class CreateTournamentInput {
   @IsOptional()
   @Length(0, 80)
   category?: string;
+
+  @Field({ nullable: true })
+  @IsString()
+  @IsOptional()
+  sport?: string;
+
+  @Field({ nullable: true, defaultValue: 'INDIVIDUAL' })
+  @IsString()
+  @IsOptional()
+  competitionType?: string;
+
+  @Field({ nullable: true })
+  @IsString()
+  @IsOptional()
+  scoringFormat?: string;
+
+  @Field(() => Number, { nullable: true })
+  @IsInt()
+  @IsOptional()
+  @Min(1)
+  minTeamSize?: number;
+
+  @Field(() => Number, { nullable: true })
+  @IsInt()
+  @IsOptional()
+  @Min(1)
+  maxTeamSize?: number;
 
   @Field(() => TournamentType)
   @IsEnum(TournamentType)

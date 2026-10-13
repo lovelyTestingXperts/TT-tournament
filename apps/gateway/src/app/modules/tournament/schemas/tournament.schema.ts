@@ -9,6 +9,7 @@ import { TournamentType } from '../enums/tournament-type.enum';
 import { TournamentStatus } from '../enums/tournament-status.enum';
 import { TournamentVisibility } from '../enums/tournament-visibility.enum';
 import { TournamentFormat } from '../enums/tournament-format.enum';
+import { Team, TeamSchema } from './team.schema';
 
 export type TournamentDocument = HydratedDocument<Tournament>;
 
@@ -89,6 +90,36 @@ export class Tournament {
     default: TournamentStatus.DRAFT,
   })
   status!: TournamentStatus;
+
+  @Prop({ type: Types.ObjectId, ref: 'User', default: null })
+  winnerId?: Types.ObjectId | null;
+
+  @Prop({ type: String, default: null })
+  winnerName?: string | null;
+
+  @Prop({ type: String, default: null })
+  sport?: string | null;
+
+  @Prop({ type: String, default: 'INDIVIDUAL' })
+  competitionType!: string;
+
+  @Prop({ type: String, default: null })
+  scoringFormat?: string | null;
+
+  @Prop({ type: Number, default: null })
+  minTeamSize?: number | null;
+
+  @Prop({ type: Number, default: null })
+  maxTeamSize?: number | null;
+
+  @Prop({ type: [TeamSchema], default: [] })
+  teams!: Team[];
+
+  @Prop({ type: Boolean, default: false })
+  isRegistrationClosed!: boolean;
+
+  @Prop({ type: Number, default: 1 })
+  currentWave!: number;
 
   @Prop({ default: false })
   isDeleted!: boolean;

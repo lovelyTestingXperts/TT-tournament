@@ -1,5 +1,6 @@
 import {
   Args,
+  Int,
   Mutation,
   Query,
   Resolver,
@@ -8,10 +9,18 @@ import {
 import { CreateTournamentInput } from './dto/create-tournament.input';
 import { UpdateTournamentInput } from './dto/update-tournament.input';
 import { TournamentsInput } from './dto/tournaments.input';
+import {
+  CreateCustomMatchInput,
+  MatchesFilterInput,
+  RecordMatchResultInput,
+  RegisterTeamInput,
+} from './dto/match.input';
 import { TournamentEntity } from './entity/tournament.entity';
+import { MatchEntity } from './entity/match.entity';
 import { PaginatedTournamentsEntity } from './entity/paginated-tournaments.entity';
 import { TournamentService } from './tournament.service';
-import { CurrentUser, CurrentUserPayload } from '../auth/current-user.decorator';
+import { CurrentUser } from '../auth/current-user.decorator';
+import type { CurrentUserPayload } from '../auth/current-user.decorator';
 
 @Resolver(() => TournamentEntity)
 export class TournamentResolver {
@@ -48,6 +57,14 @@ export class TournamentResolver {
     id: string,
   ): Promise<TournamentEntity> {
     return this.tournamentService.findTournamentById(id);
+  }
+
+  @Query(() => [MatchEntity])
+  async matches(
+    @Args('filter', { nullable: true })
+    filter?: MatchesFilterInput,
+  ): Promise<MatchEntity[]> {
+    return this.tournamentService.findAllMatches(filter);
   }
 
   @Mutation(() => TournamentEntity)
@@ -96,5 +113,73 @@ export class TournamentResolver {
       id,
       targetUserId,
     );
+  }
+
+  @Mutation(() => TournamentEntity)
+  async seedTournamentPlayers(
+    @Args('id')
+    id: string,
+    @Args('playerCount', { type: () => Int, nullable: true })
+    playerCount?: number,
+  ): Promise<TournamentEntity> {
+    return this.tournamentService.seedTournamentPlayersAndMatches(
+      id,
+      playerCount,
+    );
+  }
+
+  @Mutation(() => TournamentEntity)
+  async generateTournamentMatches(
+    @Args('id')
+    id: string,
+  ): Promise<TournamentEntity> {
+    return this.tournamentService.generateTournamentMatches(id);
+  }
+
+  @Mutation(() => TournamentEntity)
+  async closeRegistration(
+    @Args('id')
+    id: string,
+  ): Promise<TournamentEntity> {
+    return this.tournamentService.closeRegistration(id);
+  }
+
+  @Mutation(() => TournamentEntity)
+  async drawWaveFixtures(
+    @Args('id')
+    id: string,
+  ): Promise<TournamentEntity> {
+    return this.tournamentService.drawWaveFixtures(id);
+  }
+
+  @Mutation(() => TournamentEntity)
+  async registerTeam(
+    @Args('id')
+    id: string,
+    @Args('input')
+    input: RegisterTeamInput,
+  ): Promise<TournamentEntity> {
+    return this.tournamentService.registerTeam(id, input);
+  }
+
+  @Mutation(() => TournamentEntity)
+  async createCustomMatch(
+    @Args('input')
+    input: CreateCustomMatchInput,
+  ): Promise<TournamentEntity> {
+    return this.tournamentService.createCustomMatch(input);
+  }
+
+  @Mutation(() => TournamentEntity)
+  async recordMatchResult(
+    @Args('input')
+    input: RecordMatchResultInput,
+  ): Promise<TournamentEntity> {
+    return this.tournamentService.recordMatchResult(input);
+  }
+
+  @Mutation(() => TournamentEntity)
+  async resetAndSeedDatabase(): Promise<TournamentEntity> {
+    return this.tournamentService.resetAndSeedFreshData();
   }
 }

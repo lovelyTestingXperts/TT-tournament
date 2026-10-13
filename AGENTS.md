@@ -55,4 +55,22 @@ Always equip elements with standard, predictable `data-testid` attributes:
 ## 3. Playwright Coding Principles
 - Write robust, resilient components that avoid testing brittle styling classes or DOM nesting.
 - Ensure all interactive feedback (toasts, alerts, disabled states during loading) can be verified by automated assertions.
+- Use `await test.step('...', async () => { ... })` for every grouped action and assertion.
+
+## 4. Test Catalog Documentation Protocol (`web-tests.xlsx` MANDATORY)
+To maintain complete visibility over what scenarios our automated tests cover, a human-readable Excel catalog is maintained at:
+- `apps/tt-client/test-artifact/web-tests.xlsx`
+- `test-artifact/web-tests.xlsx`
+
+**Whenever a new Playwright test is added, refactored, or removed, you MUST update this sheet:**
+- **Workbook Structure**:
+  - `Summary`: Overall statistics and coverage metrics
+  - `All Tests`: Comprehensive master table across all application modules
+  - Module-Specific Sheets (`Authentication`, `Member Management`, `Tournament Management`, etc.): Tabulated by feature domain
+- **Row & Column Schema**:
+  - Each row corresponds to a single test scenario (`test(...)`)
+  - Columns: `Test ID` | `Module` | `Scenario Group` | `Title` | `Description` | `Test Type` | `Priority` | `Automated Steps` | `Expected Result` | `Spec File` | `Status` | `Created At` | `Last Updated`
+- **Automation / Script Tool**:
+  - Simply run `npm run update:test-sheet`. The tool uses TypeScript AST analysis to automatically extract tests, grouped `test.step` actions, and assertions from `tests/**/*.spec.ts` and syncs the Excel catalog with zero manual entry.
+
 

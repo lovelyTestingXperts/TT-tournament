@@ -12,7 +12,8 @@ import { LoginInput } from './dto/login.input';
 import { UserEntity } from '../user/entity/user.entity';
 import { AuthPayload } from './entity/auth-payload.entity';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import { CurrentUser, CurrentUserPayload } from './current-user.decorator';
+import { CurrentUser } from './current-user.decorator';
+import type { CurrentUserPayload } from './current-user.decorator';
 
 @Resolver()
 export class AuthResolver {

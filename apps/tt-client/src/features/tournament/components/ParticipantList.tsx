@@ -1,64 +1,119 @@
-import { User, UserCheck } from 'lucide-react';
+import { UserCheck, Users, Sparkles } from 'lucide-react';
+
+type ParticipantDetail = {
+  id: string;
+  fullName: string;
+  email: string;
+  role: string;
+};
 
 type Props = {
   participants?: string[];
+  participantDetails?: ParticipantDetail[];
   maxPlayers?: number;
+  onSeedPlayers?: () => void;
+  isSeeding?: boolean;
+  tournamentStatus?: string;
+  hasMatches?: boolean;
 };
 
 export default function ParticipantList({
   participants = [],
+  participantDetails = [],
   maxPlayers,
+  onSeedPlayers,
+  isSeeding = false,
+  tournamentStatus,
+  hasMatches = false,
 }: Props) {
+  const detailMap = new Map<string, ParticipantDetail>();
+  participantDetails.forEach((d) => detailMap.set(d.id, d));
+
+  const isCompleted = tournamentStatus === 'COMPLETED' || tournamentStatus === 'CANCELLED';
+
   return (
     <div data-testid="participant-list" className="glass-card rounded-card p-6">
-      <div className="mb-5 flex items-center justify-between">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold text-white">Participants</h2>
+          <h2 className="text-lg font-bold text-white">Registered Players</h2>
           <p className="text-xs text-slate-400">
             {participants.length} registered {maxPlayers ? `out of ${maxPlayers} slots` : ''}
           </p>
         </div>
 
-        <span className="inline-flex items-center gap-1.5 rounded-badge border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
-          <UserCheck className="size-3.5" />
-          <span>Active</span>
-        </span>
+        <div className="flex items-center gap-2.5">
+          {onSeedPlayers && !isCompleted && !hasMatches && (
+            <button
+              type="button"
+              data-testid="seed-players-btn"
+              onClick={onSeedPlayers}
+              disabled={isSeeding}
+              className="inline-flex items-center gap-1.5 rounded-button border border-primary/40 bg-primary/15 px-3 py-1.5 text-xs font-semibold text-primary transition-all hover:bg-primary hover:text-white disabled:opacity-50"
+            >
+              <Sparkles className="size-3.5" />
+              <span>{isSeeding ? 'Seeding Players...' : 'Auto-Fill Players & Draw Bracket'}</span>
+            </button>
+          )}
+
+          <span className="inline-flex items-center gap-1.5 rounded-badge border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
+            <UserCheck className="size-3.5" />
+            <span>{participants.length} Joined</span>
+          </span>
+        </div>
       </div>
 
       {participants.length === 0 ? (
         <div data-testid="empty-participants-state" className="flex flex-col items-center justify-center rounded-panel border border-dashed border-white/10 p-8 text-center">
-          <User className="size-8 text-slate-500 mb-2" />
-          <p className="text-sm font-medium text-slate-300">No participants yet</p>
-          <p className="text-xs text-slate-500 mt-1">Be the first to register for this event!</p>
+          <Users className="size-8 text-slate-500 mb-2" />
+          <p className="text-sm font-medium text-slate-300">No participants registered yet</p>
+          <p className="text-xs text-slate-500 mt-1 mb-4">
+            Register yourself or auto-fill dummy players to start the bracket draw!
+          </p>
+          {onSeedPlayers && !isCompleted && (
+            <button
+              type="button"
+              data-testid="empty-seed-players-btn"
+              onClick={onSeedPlayers}
+              disabled={isSeeding}
+              className="inline-flex items-center gap-2 rounded-button bg-primary px-4 py-2 text-xs font-semibold text-white shadow-glow transition-all hover:bg-brand-vibrant disabled:opacity-50"
+            >
+              <Sparkles className="size-3.5" />
+              <span>{isSeeding ? 'Filling Players...' : 'Fill Dummy Players & Generate Matches'}</span>
+            </button>
+          )}
         </div>
       ) : (
-        <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
-          {participants.map((player, idx) => (
-            <div
-              key={player || idx}
-              data-testid="participant-row"
-              data-player-id={player}
-              className="flex items-center justify-between rounded-panel border border-white/5 bg-slate-900/60 p-3.5 transition-colors hover:border-white/15"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-9 items-center justify-center rounded-button bg-primary/10 text-primary font-bold text-xs">
-                  {idx + 1}
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-white">
-                    {player.startsWith('user_') || player.length > 20
-                      ? `Player ${player.slice(-6)}`
-                      : player}
-                  </p>
-                  <p className="text-[11px] text-slate-400 font-mono">ID: {player}</p>
-                </div>
-              </div>
+        <div className="space-y-2.5 max-h-[420px] overflow-y-auto pr-1">
+          {participants.map((playerId, idx) => {
+            const detail = detailMap.get(playerId);
+            const displayName = detail?.fullName || (playerId.length > 20 ? `Player ${playerId.slice(-6)}` : playerId);
+            const displayEmail = detail?.email || `ID: ${playerId}`;
 
-              <span className="rounded-badge border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] font-medium text-slate-300">
-                Registered
-              </span>
-            </div>
-          ))}
+            return (
+              <div
+                key={playerId || idx}
+                data-testid="participant-row"
+                data-player-id={playerId}
+                className="flex items-center justify-between rounded-panel border border-white/5 bg-slate-900/60 p-3.5 transition-colors hover:border-white/15"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex size-9 items-center justify-center rounded-button bg-primary/10 text-primary font-bold text-xs">
+                    #{idx + 1}
+                  </div>
+                  <div>
+                    <p data-testid="participant-name" className="text-sm font-semibold text-white">
+                      {displayName}
+                    </p>
+                    <p className="text-[11px] text-slate-400">{displayEmail}</p>
+                  </div>
+                </div>
+
+                <span className="rounded-badge border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-300">
+                  Seed #{idx + 1}
+                </span>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

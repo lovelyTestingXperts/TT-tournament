@@ -25,7 +25,7 @@ export class UsersResolver {
     @Args('input')
     input: CreateUserInput,
   ): Promise<UserEntity> {
-    return this.usersService.create(input);
+    return this.usersService.create(input) as any;
   }
 
   @Query(() => PaginatedUsersEntity, {
@@ -49,7 +49,7 @@ export class UsersResolver {
     @Args('id')
     id: string,
   ): Promise<UserEntity> {
-    return this.usersService.findById(id);
+    return this.usersService.findById(id) as any;
   }
 
   @Mutation(() => UserEntity, {
@@ -65,7 +65,7 @@ export class UsersResolver {
     return this.usersService.update(
       id,
       input,
-    );
+    ) as any;
   }
 
   @Mutation(() => Boolean, {

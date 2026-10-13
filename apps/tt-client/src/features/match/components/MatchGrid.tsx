@@ -26,7 +26,7 @@ const matches = [
       'Today • 9:00 PM',
     status: 'live',
   },
-];
+] as const;
 
 export default function MatchGrid() {
   return (

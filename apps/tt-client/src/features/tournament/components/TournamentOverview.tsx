@@ -1,4 +1,4 @@
-import { Calendar, DollarSign, Globe, Shield, Trophy, Users } from 'lucide-react';
+import { Calendar, DollarSign, Globe, Trophy } from 'lucide-react';
 import moment from 'moment-timezone';
 import ParticipantList from './ParticipantList';
 import TournamentMatchList from './TournamentMatchList';
@@ -18,12 +18,39 @@ type Props = {
     registrationDeadline?: string | Date;
     maxPlayers?: number;
     participants?: string[];
+    participantDetails?: any[];
     prizePool?: number;
     matches?: any[];
+    matchDetails?: any[];
+    winnerName?: string | null;
+    sport?: string;
+    competitionType?: string;
+    scoringFormat?: string;
+    currentWave?: number;
+    isRegistrationClosed?: boolean;
+    teams?: any[];
   };
+  onSeedPlayers?: () => Promise<void> | void;
+  onGenerateMatches?: () => Promise<void> | void;
+  onRecordResult?: (matchId: string, scoreA: number, scoreB: number) => Promise<void> | void;
+  onCreateCustomMatch?: (playerAId?: string, playerBId?: string, roundName?: string) => Promise<void> | void;
+  onCloseRegistration?: () => Promise<void> | void;
+  onDrawWaveFixtures?: () => Promise<void> | void;
+  onOpenScoreModal?: (match: any) => void;
+  isProcessing?: boolean;
 };
 
-export default function TournamentOverview({ tournament }: Props) {
+export default function TournamentOverview({
+  tournament,
+  onSeedPlayers,
+  onGenerateMatches,
+  onRecordResult,
+  onCreateCustomMatch,
+  onCloseRegistration,
+  onDrawWaveFixtures,
+  onOpenScoreModal,
+  isProcessing = false,
+}: Props) {
   const statCards = [
     {
       label: 'Format',
@@ -82,10 +109,32 @@ export default function TournamentOverview({ tournament }: Props) {
       <div className="grid gap-6 xl:grid-cols-2">
         <ParticipantList
           participants={tournament.participants}
+          participantDetails={tournament.participantDetails}
           maxPlayers={tournament.maxPlayers}
+          onSeedPlayers={onSeedPlayers}
+          isSeeding={isProcessing}
+          tournamentStatus={tournament.status}
+          hasMatches={(tournament.matchDetails?.length || 0) > 0}
         />
 
-        <TournamentMatchList matches={tournament.matches} />
+        <TournamentMatchList
+          matches={tournament.matches}
+          matchDetails={tournament.matchDetails}
+          participantDetails={tournament.participantDetails}
+          participantCount={tournament.participants?.length || 0}
+          tournamentStatus={tournament.status}
+          winnerName={tournament.winnerName}
+          currentWave={tournament.currentWave}
+          isRegistrationClosed={tournament.isRegistrationClosed}
+          onSeedPlayers={onSeedPlayers}
+          onGenerateMatches={onGenerateMatches}
+          onCloseRegistration={onCloseRegistration}
+          onDrawWaveFixtures={onDrawWaveFixtures}
+          onRecordResult={onRecordResult}
+          onOpenScoreModal={onOpenScoreModal}
+          onCreateCustomMatch={onCreateCustomMatch}
+          isProcessing={isProcessing}
+        />
       </div>
     </div>
   );

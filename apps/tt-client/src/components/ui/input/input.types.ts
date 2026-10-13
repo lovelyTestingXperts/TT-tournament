@@ -3,7 +3,7 @@ import {
 } from 'react';
 
 export interface InputProps
-  extends InputHTMLAttributes<HTMLInputElement> {
+  extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
   label?: string;
   error?: string;
   size?: 'sm' | 'md' | 'lg';

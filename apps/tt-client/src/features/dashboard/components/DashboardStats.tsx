@@ -6,12 +6,13 @@ import {
 } from 'lucide-react';
 
 import StatCard from '@/components/ui/card/StatCard';
-import { useTournaments } from '@/features/tournament/graphql/hooks';
+import { useTournaments, useMatches } from '@/features/tournament/graphql/hooks';
 import { useUsers } from '@/features/member/graphql/hooks';
 
 export default function DashboardStats() {
   const { data: tournamentsData, loading: tournamentsLoading } = useTournaments({ limit: 100 });
   const { data: usersData, loading: usersLoading } = useUsers({ limit: 100 });
+  const { data: matchesData, loading: matchesLoading } = useMatches();
 
   const tournaments = tournamentsData?.tournaments?.items ?? [];
   const tournamentCount = tournamentsData?.tournaments?.meta?.total ?? tournaments.length;
@@ -25,8 +26,11 @@ export default function DashboardStats() {
   }).length;
 
   const activeTournaments = tournaments.filter(
-    (t: any) => t.status === 'UPCOMING' || t.status === 'ONGOING'
+    (t: any) => t.status === 'UPCOMING' || t.status === 'ACTIVE' || t.status === 'ONGOING'
   ).length;
+
+  const matches = matchesData?.matches ?? [];
+  const completedMatches = matches.filter((m: any) => m.status === 'COMPLETED').length;
 
   return (
     <div
@@ -61,8 +65,8 @@ export default function DashboardStats() {
 
       <StatCard
         title="Matches"
-        value={0}
-        subtitle="Tournament matches"
+        value={matchesLoading ? '...' : matches.length}
+        subtitle={`${completedMatches} completed`}
         icon={Calendar}
       />
     </div>

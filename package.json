@@ -2,7 +2,10 @@
   "name": "@org/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "update:test-sheet": "node tools/generate-test-sheet.js",
+    "seed:players": "node tools/seed-players.js"
+  },
   "private": true,
   "devDependencies": {
     "@nestjs/schematics": "^11.0.0",

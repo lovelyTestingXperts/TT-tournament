@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   // Verify and sync user profile with backend using token
-  const { data, error, loading } = useQuery(ME_QUERY, {
+  const { data, error, loading } = useQuery<any>(ME_QUERY, {
     skip: !token,
     fetchPolicy: 'network-only',
   });

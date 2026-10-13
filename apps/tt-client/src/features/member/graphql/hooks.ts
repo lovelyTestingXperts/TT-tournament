@@ -9,14 +9,14 @@ import {
 } from './mutation';
 
 export function useUsers(input?: any) {
-  return useQuery(GET_USERS, {
+  return useQuery<any>(GET_USERS, {
     variables: { input },
     fetchPolicy: 'cache-and-network',
   });
 }
 
 export function useUser(id: string) {
-  return useQuery(GET_USER, {
+  return useQuery<any>(GET_USER, {
     variables: { id },
     skip: !id,
     fetchPolicy: 'cache-and-network',
@@ -24,25 +24,25 @@ export function useUser(id: string) {
 }
 
 export function useCreateUser() {
-  return useMutation(CREATE_USER, {
+  return useMutation<any>(CREATE_USER, {
     refetchQueries: [{ query: GET_USERS }],
   });
 }
 
 export function useUpdateUser() {
-  return useMutation(UPDATE_USER, {
+  return useMutation<any>(UPDATE_USER, {
     refetchQueries: [{ query: GET_USERS }],
   });
 }
 
 export function useDeleteUser() {
-  return useMutation(DELETE_USER, {
+  return useMutation<any>(DELETE_USER, {
     refetchQueries: [{ query: GET_USERS }],
   });
 }
 
 export function useRestoreUser() {
-  return useMutation(RESTORE_USER, {
+  return useMutation<any>(RESTORE_USER, {
     refetchQueries: [{ query: GET_USERS }],
   });
 }

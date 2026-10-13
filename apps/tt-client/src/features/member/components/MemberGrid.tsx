@@ -22,7 +22,7 @@ const members = [
     phone: '+91 7777777777',
     role: 'member',
   },
-];
+] as const;
 
 export default function MemberGrid() {
   return (

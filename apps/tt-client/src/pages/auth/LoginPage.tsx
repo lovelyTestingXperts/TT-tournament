@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Trophy, AlertCircle, ShieldAlert } from 'lucide-react';
+import { Trophy } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useMutation } from '@apollo/client/react';
@@ -39,8 +39,8 @@ export default function LoginPage() {
     },
   });
 
-  const [loginMutation, { loading }] = useMutation(LOGIN_MUTATION, {
-    onCompleted: (data) => {
+  const [loginMutation, { loading }] = useMutation<any>(LOGIN_MUTATION, {
+    onCompleted: (data: any) => {
       const { accessToken, user } = data.login;
       if (!user.isActive) {
         setAccountInactiveNotice(

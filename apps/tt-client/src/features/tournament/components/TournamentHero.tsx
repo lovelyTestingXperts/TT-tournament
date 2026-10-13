@@ -1,4 +1,4 @@
-import { ArrowLeft, Calendar, DollarSign, Trophy, UserPlus, Users, Trash2 } from 'lucide-react';
+import { ArrowLeft, Calendar, DollarSign, Trophy, UserPlus, Users, Trash2, CheckCircle2, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import moment from 'moment-timezone';
 import StatusBadge from '@/components/ui/badge/StatusBadge';
@@ -9,6 +9,8 @@ type Props = {
     name: string;
     description?: string;
     category?: string;
+    sport?: string;
+    competitionType?: string;
     type?: string;
     format?: string;
     status: string;
@@ -18,7 +20,10 @@ type Props = {
     maxPlayers?: number;
     participants?: string[];
     prizePool?: number;
+    isRegistrationClosed?: boolean;
+    teams?: any[];
   };
+  isAlreadyRegistered?: boolean;
   onRegister?: () => void;
   onDelete?: () => void;
   isRegistering?: boolean;
@@ -27,6 +32,7 @@ type Props = {
 
 export default function TournamentHero({
   tournament,
+  isAlreadyRegistered = false,
   onRegister,
   onDelete,
   isRegistering = false,
@@ -136,18 +142,60 @@ export default function TournamentHero({
         {/* Action Button */}
         {onRegister && (
           <div className="shrink-0">
-            <button
-              type="button"
-              data-testid="register-tournament-btn"
-              onClick={onRegister}
-              disabled={isRegistering || isFull || tournament.status === 'COMPLETED' || tournament.status === 'CANCELLED'}
-              className="inline-flex items-center justify-center gap-2 rounded-button bg-primary px-6 py-3 text-sm font-semibold text-white shadow-glow transition-all hover:bg-brand-vibrant active:scale-95 disabled:pointer-events-none disabled:opacity-50"
-            >
-              <UserPlus className="size-4" />
-              <span>
-                {isRegistering ? 'Registering...' : isFull ? 'Tournament Full' : 'Register for Tournament'}
-              </span>
-            </button>
+            {isAlreadyRegistered ? (
+              <div
+                data-testid="already-registered-badge"
+                className="inline-flex items-center gap-2 rounded-button border border-emerald-500/40 bg-emerald-500/15 px-5 py-2.5 text-sm font-semibold text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+              >
+                <CheckCircle2 className="size-4" />
+                <span>Already Registered</span>
+              </div>
+            ) : tournament.isRegistrationClosed ? (
+              <div
+                data-testid="registration-closed-badge"
+                className="inline-flex items-center gap-2 rounded-button border border-amber-500/40 bg-amber-500/15 px-5 py-2.5 text-sm font-semibold text-amber-300"
+              >
+                <Lock className="size-4" />
+                <span>Registration Closed</span>
+              </div>
+            ) : (
+              <button
+                type="button"
+                data-testid="register-tournament-btn"
+                onClick={onRegister}
+                disabled={
+                  isRegistering ||
+                  isFull ||
+                  tournament.status === 'COMPLETED' ||
+                  tournament.status === 'CANCELLED'
+                }
+                className="inline-flex items-center justify-center gap-2 rounded-button bg-primary px-6 py-3 text-sm font-semibold text-white shadow-glow transition-all hover:bg-brand-vibrant active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+              >
+                {tournament.competitionType === 'TEAM' ? (
+                  <>
+                    <Users className="size-4" />
+                    <span>
+                      {isRegistering
+                        ? 'Registering Team...'
+                        : isFull
+                        ? 'Tournament Full'
+                        : 'Register Team'}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="size-4" />
+                    <span>
+                      {isRegistering
+                        ? 'Registering...'
+                        : isFull
+                        ? 'Tournament Full'
+                        : 'Register for Tournament'}
+                    </span>
+                  </>
+                )}
+              </button>
+            )}
           </div>
         )}
       </div>

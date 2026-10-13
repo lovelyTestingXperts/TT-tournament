@@ -11,7 +11,8 @@ import {
 } from '@nestjs/common';
 
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { CurrentUser, CurrentUserPayload } from '../auth/current-user.decorator';
+import { CurrentUser } from '../auth/current-user.decorator';
+import type { CurrentUserPayload } from '../auth/current-user.decorator';
 import { CreateTournamentInput } from './dto/create-tournament.input';
 import { UpdateTournamentInput } from './dto/update-tournament.input';
 import { TournamentsInput } from './dto/tournaments.input';

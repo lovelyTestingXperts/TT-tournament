@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Trophy, AlertCircle, CheckCircle } from 'lucide-react';
+import { Trophy, CheckCircle } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMutation } from '@apollo/client/react';
@@ -19,6 +19,15 @@ export default function RegisterPage() {
   const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const redirectTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current);
+      }
+    };
+  }, []);
 
   const { control, handleSubmit } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -32,8 +41,8 @@ export default function RegisterPage() {
     },
   });
 
-  const [registerMutation, { loading }] = useMutation(REGISTER_MUTATION, {
-    onCompleted: (data) => {
+  const [registerMutation, { loading }] = useMutation<any>(REGISTER_MUTATION, {
+    onCompleted: (data: any) => {
       const user = data.register;
       if (!user.isActive) {
         setSuccessMessage(
@@ -41,7 +50,7 @@ export default function RegisterPage() {
         );
       } else {
         setSuccessMessage('Registration successful! Redirecting to login...');
-        setTimeout(() => {
+        redirectTimerRef.current = setTimeout(() => {
           navigate('/login');
         }, 1500);
       }

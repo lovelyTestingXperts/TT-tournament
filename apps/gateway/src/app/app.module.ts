@@ -3,7 +3,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { MongooseModule } from '@nestjs/mongoose';
-import { join } from 'path';
 
 import configuration from './shared/config/configuration';
 import { validateEnv } from './shared/config/env.validation';
@@ -33,7 +32,7 @@ import { UsersModule } from './modules/user/user.module';
       playground: true,
       sortSchema: true,
 
-      context: ({ req }) => ({ req }),
+      context: ({ req }: { req: any }) => ({ req }),
     }),
 
     MongooseModule.forRootAsync({

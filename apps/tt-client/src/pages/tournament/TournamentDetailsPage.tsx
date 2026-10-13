@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import PageContainer from '@/components/layout/PageContainer';
@@ -10,12 +10,22 @@ import TournamentOverview from '@/features/tournament/components/TournamentOverv
 import TournamentTabs from '@/features/tournament/components/TournamentTabs';
 import ParticipantList from '@/features/tournament/components/ParticipantList';
 import TournamentMatchList from '@/features/tournament/components/TournamentMatchList';
+import RegisterTeamModal from '@/features/tournament/components/RegisterTeamModal';
+import RecordScoreModal from '@/features/tournament/components/RecordScoreModal';
 import {
   useTournament,
   useDeleteTournament,
   useRegisterTournament,
   useUpdateTournament,
+  useSeedTournamentPlayers,
+  useGenerateTournamentMatches,
+  useRecordMatchResult,
+  useCreateCustomMatch,
+  useCloseRegistration,
+  useDrawWaveFixtures,
+  useRegisterTeam,
 } from '@/features/tournament/graphql/hooks';
+import { useUsers } from '@/features/member/graphql/hooks';
 import { useAuth } from '@/features/auth/context/AuthContext';
 
 export default function TournamentDetailsPage() {
@@ -26,12 +36,38 @@ export default function TournamentDetailsPage() {
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
+  // Multi-sport modals state
+  const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
+  const [scoreModalMatch, setScoreModalMatch] = useState<any | null>(null);
+
   const { data, loading, error, refetch } = useTournament(id || '');
+  const { data: usersData } = useUsers({ limit: 100 });
+  const availableUsers = usersData?.users?.items || [];
+
   const [deleteTournament, { loading: isDeleting }] = useDeleteTournament();
   const [registerTournament, { loading: isRegistering }] = useRegisterTournament();
   const [updateTournament, { loading: isUpdating }] = useUpdateTournament();
+  const [seedTournamentPlayers, { loading: isSeeding }] = useSeedTournamentPlayers();
+  const [generateTournamentMatches, { loading: isGenerating }] = useGenerateTournamentMatches();
+  const [recordMatchResult, { loading: isRecording }] = useRecordMatchResult();
+  const [createCustomMatch, { loading: isCreatingMatch }] = useCreateCustomMatch();
+  const [closeRegistration, { loading: isClosingReg }] = useCloseRegistration();
+  const [drawWaveFixtures, { loading: isDrawingWave }] = useDrawWaveFixtures();
+  const [registerTeam, { loading: isRegisteringTeam }] = useRegisterTeam();
 
+  const isProcessing =
+    isSeeding || isGenerating || isRecording || isCreatingMatch || isClosingReg || isDrawingWave || isRegisteringTeam;
   const tournament = data?.tournament;
+
+  // Check if current user is already registered (directly or in a team roster)
+  const isAlreadyRegistered = useMemo(() => {
+    if (!user?.id || !tournament) return false;
+    if (tournament.participants && tournament.participants.includes(user.id)) return true;
+    if (tournament.teams && tournament.teams.some((team: any) => team.members?.some((m: any) => m.userId === user.id))) {
+      return true;
+    }
+    return false;
+  }, [user?.id, tournament]);
 
   const [editName, setEditName] = useState('');
   const [editCategory, setEditCategory] = useState('');
@@ -61,19 +97,194 @@ export default function TournamentDetailsPage() {
 
   const handleRegister = async () => {
     if (!id) return;
+    if (tournament?.competitionType === 'TEAM') {
+      setIsTeamModalOpen(true);
+      return;
+    }
     try {
       setActionSuccess(null);
       setActionError(null);
-      await registerTournament({
+      const res = await registerTournament({
         variables: {
           id,
           participantId: user?.id,
         },
       });
-      setActionSuccess('Successfully registered for tournament!');
+      const updatedMatches = res.data?.registerTournament?.matchDetails || [];
+      if (updatedMatches.length > 0 && (tournament?.matchDetails?.length || 0) === 0) {
+        setActionSuccess('Successfully registered! All player slots filled — Round 1 bracket matches have been randomly generated!');
+      } else {
+        setActionSuccess('Successfully registered for tournament!');
+      }
       await refetch();
     } catch (err: any) {
       setActionError(err.message || 'Failed to register for tournament');
+    }
+  };
+
+  const handleRegisterTeam = async (teamData: {
+    name: string;
+    captainId: string;
+    members: Array<{ userId: string; roleInTeam: string }>;
+  }) => {
+    if (!id) return;
+    try {
+      setActionSuccess(null);
+      setActionError(null);
+      await registerTeam({
+        variables: {
+          input: {
+            tournamentId: id,
+            name: teamData.name,
+            captainId: teamData.captainId,
+            members: teamData.members,
+          },
+        },
+      });
+      setIsTeamModalOpen(false);
+      setActionSuccess(`Team "${teamData.name}" successfully registered for the tournament!`);
+      await refetch();
+    } catch (err: any) {
+      setActionError(err.message || 'Failed to register team');
+    }
+  };
+
+  const handleCloseRegistration = async () => {
+    if (!id) return;
+    try {
+      setActionSuccess(null);
+      setActionError(null);
+      await closeRegistration({ variables: { id } });
+      setActionSuccess('Registration window officially closed! Wave 1 fixtures can now be drawn.');
+      await refetch();
+    } catch (err: any) {
+      setActionError(err.message || 'Failed to close registration');
+    }
+  };
+
+  const handleDrawWaveFixtures = async () => {
+    if (!id) return;
+    try {
+      setActionSuccess(null);
+      setActionError(null);
+      const res = await drawWaveFixtures({ variables: { id } });
+      const currentWave = res.data?.drawWaveFixtures?.currentWave || 1;
+      setActionSuccess(`Wave ${currentWave} fixtures drawn successfully! Matches are scheduled.`);
+      await refetch();
+    } catch (err: any) {
+      setActionError(err.message || 'Failed to draw fixtures');
+    }
+  };
+
+  const handleSeedPlayers = async () => {
+    if (!id) return;
+    try {
+      setActionSuccess(null);
+      setActionError(null);
+      await seedTournamentPlayers({
+        variables: {
+          id,
+          playerCount: tournament?.maxPlayers || 4,
+        },
+      });
+      setActionSuccess('Dummy players joined and Round 1 bracket matches have been randomly generated!');
+      await refetch();
+    } catch (err: any) {
+      setActionError(err.message || 'Failed to seed players and generate matches');
+    }
+  };
+
+  const handleGenerateMatches = async () => {
+    if (!id) return;
+    try {
+      setActionSuccess(null);
+      setActionError(null);
+      await generateTournamentMatches({
+        variables: { id },
+      });
+      setActionSuccess('Bracket matches randomly drawn and scheduled!');
+      await refetch();
+    } catch (err: any) {
+      setActionError(err.message || 'Failed to generate matches');
+    }
+  };
+
+  const handleRecordResult = async (matchId: string, scoreA: number, scoreB: number) => {
+    if (!id) return;
+    try {
+      setActionSuccess(null);
+      setActionError(null);
+      const res = await recordMatchResult({
+        variables: {
+          input: { matchId, scoreA, scoreB },
+        },
+      });
+      const updatedTournament = res.data?.recordMatchResult;
+      if (updatedTournament?.status === 'COMPLETED' && updatedTournament?.winnerName) {
+        setActionSuccess(`Championship Final completed! ${updatedTournament.winnerName} is crowned the Official Tournament Winner!`);
+      } else {
+        setActionSuccess('Match result recorded! Winner has automatically advanced to the next round match.');
+      }
+      await refetch();
+    } catch (err: any) {
+      setActionError(err.message || 'Failed to record match result');
+    }
+  };
+
+  const handleRecordSportResult = async (
+    matchId: string,
+    scoreA: number,
+    scoreB: number,
+    scoreDetails?: string,
+    winnerId?: string
+  ) => {
+    if (!id) return;
+    try {
+      setActionSuccess(null);
+      setActionError(null);
+      const res = await recordMatchResult({
+        variables: {
+          input: {
+            matchId,
+            scoreA,
+            scoreB,
+            scoreDetails,
+            winnerId,
+          },
+        },
+      });
+      setScoreModalMatch(null);
+      const updatedTournament = res.data?.recordMatchResult;
+      if (updatedTournament?.status === 'COMPLETED' && updatedTournament?.winnerName) {
+        setActionSuccess(`Championship Final completed! ${updatedTournament.winnerName} is crowned the Official Tournament Winner!`);
+      } else {
+        setActionSuccess('Match score recorded and winner advanced!');
+      }
+      await refetch();
+    } catch (err: any) {
+      setActionError(err.message || 'Failed to record match result');
+    }
+  };
+
+  const handleCreateCustomMatch = async (playerAId?: string, playerBId?: string, roundName?: string) => {
+    if (!id) return;
+    try {
+      setActionSuccess(null);
+      setActionError(null);
+      await createCustomMatch({
+        variables: {
+          input: {
+            tournamentId: id,
+            playerAId,
+            playerBId,
+            roundName,
+          },
+        },
+      });
+      setActionSuccess('New tournament match added to the bracket!');
+      await refetch();
+    } catch (err: any) {
+      setActionError(err.message || 'Failed to create match');
     }
   };
 
@@ -175,6 +386,7 @@ export default function TournamentDetailsPage() {
         {/* Hero Section */}
         <TournamentHero
           tournament={tournament}
+          isAlreadyRegistered={isAlreadyRegistered}
           onRegister={handleRegister}
           onDelete={handleDelete}
           isRegistering={isRegistering}
@@ -191,7 +403,17 @@ export default function TournamentDetailsPage() {
         {/* Tab Content */}
         {activeTab === 'overview' && (
           <div data-testid="tab-content-overview">
-            <TournamentOverview tournament={tournament} />
+            <TournamentOverview
+              tournament={tournament}
+              onSeedPlayers={handleSeedPlayers}
+              onGenerateMatches={handleGenerateMatches}
+              onCloseRegistration={handleCloseRegistration}
+              onDrawWaveFixtures={handleDrawWaveFixtures}
+              onRecordResult={handleRecordResult}
+              onOpenScoreModal={(match) => setScoreModalMatch(match)}
+              onCreateCustomMatch={handleCreateCustomMatch}
+              isProcessing={isProcessing}
+            />
           </div>
         )}
 
@@ -199,16 +421,59 @@ export default function TournamentDetailsPage() {
           <div data-testid="tab-content-participants">
             <ParticipantList
               participants={tournament.participants}
+              participantDetails={tournament.participantDetails}
               maxPlayers={tournament.maxPlayers}
+              onSeedPlayers={handleSeedPlayers}
+              isSeeding={isProcessing}
+              tournamentStatus={tournament.status}
+              hasMatches={(tournament.matchDetails?.length || 0) > 0}
             />
           </div>
         )}
 
         {activeTab === 'matches' && (
           <div data-testid="tab-content-matches">
-            <TournamentMatchList matches={tournament.matches} />
+            <TournamentMatchList
+              matches={tournament.matches}
+              matchDetails={tournament.matchDetails}
+              participantDetails={tournament.participantDetails}
+              participantCount={tournament.participants?.length || 0}
+              tournamentStatus={tournament.status}
+              winnerName={tournament.winnerName}
+              currentWave={tournament.currentWave}
+              isRegistrationClosed={tournament.isRegistrationClosed}
+              onSeedPlayers={handleSeedPlayers}
+              onGenerateMatches={handleGenerateMatches}
+              onCloseRegistration={handleCloseRegistration}
+              onDrawWaveFixtures={handleDrawWaveFixtures}
+              onRecordResult={handleRecordResult}
+              onOpenScoreModal={(match) => setScoreModalMatch(match)}
+              onCreateCustomMatch={handleCreateCustomMatch}
+              isProcessing={isProcessing}
+            />
           </div>
         )}
+
+        {/* Multi-sport Registration & Scoring Modals */}
+        <RegisterTeamModal
+          isOpen={isTeamModalOpen}
+          onClose={() => setIsTeamModalOpen(false)}
+          tournament={tournament}
+          availableUsers={availableUsers}
+          currentUserId={user?.id}
+          onSubmit={handleRegisterTeam}
+          isSubmitting={isRegisteringTeam}
+        />
+
+        <RecordScoreModal
+          isOpen={Boolean(scoreModalMatch)}
+          onClose={() => setScoreModalMatch(null)}
+          match={scoreModalMatch}
+          sport={tournament.sport}
+          scoringFormat={tournament.scoringFormat}
+          onSubmit={handleRecordSportResult}
+          isSubmitting={isRecording}
+        />
 
         {activeTab === 'settings' && (
           <div data-testid="tab-content-settings" className="glass-card rounded-card p-6 space-y-6">
