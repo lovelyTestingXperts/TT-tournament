@@ -8,9 +8,8 @@ This directory contains the automated end-to-end (E2E) testing suite for the Tab
 
 ```
 apps/tt-client/tests/
-├── assertions/               # Reusable assertion classes (AuthAssertions, MemberAssertions, TournamentAssertions)
 ├── data/                     # Dynamic data factory services for payloads and validation edge cases
-├── fixtures/                 # Playwright test fixtures injecting the PageManager (`pm`) instance
+├── fixtures/                 # Playwright test fixtures injecting PageManager and cleanup helpers
 ├── pages/                    # Page Object Model (POM) representations of application screens
 │   ├── login.page.ts
 │   ├── register.page.ts
@@ -24,6 +23,9 @@ apps/tt-client/tests/
 ├── auth.spec.ts              # Authentication & authorization test suites (10 scenarios)
 ├── user-crud.spec.ts         # User and member CRUD operation test suites (5 scenarios)
 ├── tournament-crud.spec.ts   # Tournament CRUD and lifecycle test suites (6 scenarios)
+├── match-bracket.spec.ts     # Match bracket and knockout progression suites (1 scenario)
+├── multi-sport.spec.ts       # Multi-sport, team roster, wave draws & scoring suites (4 scenarios)
+├── global-teardown.ts        # Automated global teardown hook executing cleanTestData()
 └── README.md                 # This testing and documentation guide
 ```
 
@@ -92,10 +94,33 @@ test('CREATE: should create a new tournament successfully', async ({ pm, page })
   });
 
   await test.step('Verify tournament appears in directory', async () => {
-    await TournamentAssertions.assertTournamentInGrid(pm.tournaments, tournamentData.name);
+    await expect(pm.tournaments.getTournamentCard(tournamentData.name)).toBeVisible();
   });
 });
 ```
+
+---
+
+## 🧹 Test Data Teardown & UI Isolation Protocol (MANDATORY)
+
+To prevent test-created artifacts from cluttering or corrupting the live application UI for human testers, all tests participate in our multi-layered teardown system:
+
+1. **Automated Global Teardown**:
+   - `playwright.config.ts` registers `globalTeardown: require.resolve('./tests/global-teardown.ts')`.
+   - After the test run completes, `cleanTestData()` automatically executes, removing all test users, tournaments, and matches.
+
+2. **Fixture-Level Cleanup**:
+   - If a specific test scenario requires mid-suite cleanup, import and call `cleanupTestData()` injected from `test.fixture.ts`.
+
+3. **User Naming Conventions**:
+   - Test users must always use emails matching `@example.com` or `@ttsports.com` (or generated via `DataFactory`).
+   - The official admin account (`lovely.kumar@testingxperts.com`) and seeded players (`@sports.org`) are protected and will never be deleted.
+
+4. **Standalone Manual Cleanup**:
+   - At any time, run:
+     ```bash
+     npm run test:cleanup
+     ```
 
 ---
 
@@ -109,7 +134,11 @@ npm exec playwright test -- --project=chromium
 npm exec playwright test tests/auth.spec.ts --project=chromium
 npm exec playwright test tests/user-crud.spec.ts --project=chromium
 npm exec playwright test tests/tournament-crud.spec.ts --project=chromium
+npm exec playwright test tests/multi-sport.spec.ts --project=chromium
 
 # Run tests with HTML report
 npm exec playwright show-report
+
+# Purge any test artifacts manually
+npm run test:cleanup
 ```

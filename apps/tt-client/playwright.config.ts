@@ -6,6 +6,7 @@ import { APPLICATION_ENVIRONMENT } from './src/config/env.config';
  */
 export default defineConfig({
   testDir: './tests',
+  globalTeardown: require.resolve('./tests/global-teardown.ts'),
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -72,18 +73,10 @@ export default defineConfig({
   ],
 
   /* Run your local dev servers before starting the tests */
-  webServer: [
-    {
-      command: 'npx nx serve gateway',
-      url: 'http://localhost:4000/graphql',
-      reuseExistingServer: true,
-      timeout: 120 * 1000,
-    },
-    {
-      command: 'npx nx serve @org/tt-client',
-      url: 'http://localhost:4200',
-      reuseExistingServer: true,
-      timeout: 120 * 1000,
-    },
-  ],
+  webServer: {
+    command: 'npx nx serve @org/tt-client',
+    url: 'http://localhost:4200',
+    reuseExistingServer: true,
+    timeout: 60 * 1000,
+  },
 });

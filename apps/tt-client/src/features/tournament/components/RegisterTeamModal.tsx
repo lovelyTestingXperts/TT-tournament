@@ -309,8 +309,10 @@ export default function RegisterTeamModal({
               loading={isSubmitting}
               disabled={!isMinMet || !teamName.trim() || isSubmitting}
             >
-              <CheckCircle2 className="size-4" />
-              <span>Confirm & Register Team</span>
+              <span data-testid="submit-team-registration-btn" className="inline-flex items-center gap-1.5">
+                <CheckCircle2 className="size-4" />
+                <span>Confirm & Register Team</span>
+              </span>
             </Button>
           </div>
         </form>

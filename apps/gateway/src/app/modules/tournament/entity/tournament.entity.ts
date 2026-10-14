@@ -133,6 +133,22 @@ export class TournamentEntity {
   @Field(() => String, { nullable: true })
   winnerName?: string | null;
 
+  @Field(() => Boolean, { defaultValue: false })
+  hasBothDivisions!: boolean;
+
+
+  @Field(() => String, { nullable: true })
+  division?: string | null;
+
+  @Field(() => ID, { nullable: true })
+  parentTournamentId?: string | null;
+
+  @Field(() => [String], { nullable: true })
+  childTournamentIds?: string[];
+
+  @Field(() => [TournamentEntity], { nullable: true })
+  childTournaments?: TournamentEntity[];
+
   @Field()
   createdAt!: Date;
 
@@ -145,3 +161,4 @@ export class TournamentEntity {
   @Field({ nullable: true })
   deletedAt?: Date;
 }
+

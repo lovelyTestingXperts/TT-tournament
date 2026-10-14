@@ -44,7 +44,7 @@ export default function TournamentTabs({
               }
             `}
           >
-            <span>{tab.label}</span>
+            <span data-testid={`${tab.key}-tab-btn`}>{tab.label}</span>
             {tab.key === 'participants' && typeof participantCount === 'number' && (
               <span
                 data-testid="tab-participants-badge"

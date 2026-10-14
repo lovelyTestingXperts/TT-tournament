@@ -11,6 +11,7 @@ type Props = {
   participantsCount?: number;
   startDate: string | Date;
   status: string;
+  hasBothDivisions?: boolean;
 };
 
 export default function TournamentCard({
@@ -21,6 +22,7 @@ export default function TournamentCard({
   participantsCount = 0,
   startDate,
   status,
+  hasBothDivisions = false,
 }: Props) {
   const navigate = useNavigate();
 
@@ -68,7 +70,17 @@ export default function TournamentCard({
           </p>
         </div>
 
-        <StatusBadge status={badgeStatus} />
+        <div className="flex flex-col items-end gap-1.5">
+          <StatusBadge status={badgeStatus} />
+          {hasBothDivisions && (
+            <span
+              data-testid="dual-division-badge"
+              className="rounded-full bg-primary/20 px-2 py-0.5 text-[10px] font-semibold text-primary border border-primary/30 tracking-wide"
+            >
+              Singles & Doubles
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Stats indicators matching reference screenshot */}

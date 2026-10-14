@@ -99,7 +99,7 @@ export default function TournamentHero({
           </div>
 
           <h1 data-testid="tournament-hero-name" className="text-3xl font-extrabold tracking-tight text-white md:text-4xl">
-            {tournament.name}
+            <span data-testid="tournament-name">{tournament.name}</span>
           </h1>
 
           {tournament.description && (
@@ -171,6 +171,7 @@ export default function TournamentHero({
                 }
                 className="inline-flex items-center justify-center gap-2 rounded-button bg-primary px-6 py-3 text-sm font-semibold text-white shadow-glow transition-all hover:bg-brand-vibrant active:scale-95 disabled:pointer-events-none disabled:opacity-50"
               >
+                <span data-testid="register-btn" className="contents">
                 {tournament.competitionType === 'TEAM' ? (
                   <>
                     <Users className="size-4" />
@@ -194,6 +195,7 @@ export default function TournamentHero({
                     </span>
                   </>
                 )}
+                </span>
               </button>
             )}
           </div>

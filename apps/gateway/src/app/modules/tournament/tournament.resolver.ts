@@ -67,6 +67,14 @@ export class TournamentResolver {
     return this.tournamentService.findAllMatches(filter);
   }
 
+  @Query(() => MatchEntity, { nullable: true })
+  async match(
+    @Args('id')
+    id: string,
+  ): Promise<MatchEntity | null> {
+    return this.tournamentService.findMatchById(id);
+  }
+
   @Mutation(() => TournamentEntity)
   async updateTournament(
     @Args('id')
@@ -176,6 +184,16 @@ export class TournamentResolver {
     input: RecordMatchResultInput,
   ): Promise<TournamentEntity> {
     return this.tournamentService.recordMatchResult(input);
+  }
+
+  @Mutation(() => MatchEntity)
+  async startMatch(
+    @Args('matchId')
+    matchId: string,
+    @Args('format', { nullable: true })
+    format?: string,
+  ): Promise<MatchEntity> {
+    return this.tournamentService.startMatch(matchId, format);
   }
 
   @Mutation(() => TournamentEntity)

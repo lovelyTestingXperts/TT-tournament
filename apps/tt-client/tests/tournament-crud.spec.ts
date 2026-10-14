@@ -1,5 +1,4 @@
 import { test, expect } from './fixtures';
-import { TournamentAssertions, AuthAssertions } from './assertions';
 import { DataFactory } from './data';
 
 test.describe('Tournament Management CRUD & Validation Operations', () => {
@@ -10,7 +9,8 @@ test.describe('Tournament Management CRUD & Validation Operations', () => {
     await test.step('Register active admin user', async () => {
       await pm.register.goto();
       await pm.register.registerUser(adminUser);
-      await AuthAssertions.assertSuccessMessageVisible(pm.register, /Registration successful/i);
+      await expect(pm.register.successMessage).toBeVisible();
+      await expect(pm.register.successMessage).toContainText(/Registration successful/i);
     });
 
     await test.step('Login to obtain active session', async () => {
@@ -26,13 +26,22 @@ test.describe('Tournament Management CRUD & Validation Operations', () => {
 
     await test.step('Navigate to tournaments list', async () => {
       await pm.tournaments.goto();
-      await TournamentAssertions.assertTournamentsPageVisible(pm.tournaments);
+      await expect(pm.tournaments.pageContainer).toBeVisible();
+      await expect(pm.tournaments.header).toBeVisible();
+      await expect(pm.tournaments.createTournamentButton).toBeVisible();
+      await expect(pm.tournaments.searchInput).toBeVisible();
     });
 
     await test.step('Open tournament creation form', async () => {
       await pm.tournaments.clickCreateTournament();
       await page.waitForURL(/\/tournaments\/create/);
-      await TournamentAssertions.assertCreateTournamentFormVisible(pm.createTournament);
+      await expect(pm.createTournament.pageContainer).toBeVisible();
+      await expect(pm.createTournament.form).toBeVisible();
+      await expect(pm.createTournament.nameInput).toBeVisible();
+      await expect(pm.createTournament.categoryInput).toBeVisible();
+      await expect(pm.createTournament.typeSelect).toBeVisible();
+      await expect(pm.createTournament.formatSelect).toBeVisible();
+      await expect(pm.createTournament.submitButton).toBeVisible();
     });
 
     await test.step('Fill and submit tournament form with valid payload', async () => {
@@ -41,19 +50,28 @@ test.describe('Tournament Management CRUD & Validation Operations', () => {
 
     await test.step('Verify redirection back to tournaments directory', async () => {
       await page.waitForURL(/\/tournaments$/);
-      await TournamentAssertions.assertTournamentsPageVisible(pm.tournaments);
+      await expect(pm.tournaments.pageContainer).toBeVisible();
+      await expect(pm.tournaments.header).toBeVisible();
+      await expect(pm.tournaments.createTournamentButton).toBeVisible();
+      await expect(pm.tournaments.searchInput).toBeVisible();
     });
 
     await test.step('Search for created tournament and verify presence in grid', async () => {
       await pm.tournaments.search(tournamentData.name);
-      await TournamentAssertions.assertTournamentInGrid(pm.tournaments, tournamentData.name);
+      await expect(pm.tournaments.getTournamentCard(tournamentData.name)).toBeVisible();
     });
   });
 
   test('VALIDATION: should enforce client-side date & length constraints on tournament creation', async ({ pm, page }) => {
     await test.step('Navigate to tournament creation page', async () => {
       await pm.createTournament.goto();
-      await TournamentAssertions.assertCreateTournamentFormVisible(pm.createTournament);
+      await expect(pm.createTournament.pageContainer).toBeVisible();
+      await expect(pm.createTournament.form).toBeVisible();
+      await expect(pm.createTournament.nameInput).toBeVisible();
+      await expect(pm.createTournament.categoryInput).toBeVisible();
+      await expect(pm.createTournament.typeSelect).toBeVisible();
+      await expect(pm.createTournament.formatSelect).toBeVisible();
+      await expect(pm.createTournament.submitButton).toBeVisible();
     });
 
     await test.step('Verify title minimum length constraint (< 3 characters)', async () => {
@@ -92,7 +110,9 @@ test.describe('Tournament Management CRUD & Validation Operations', () => {
       await pm.tournaments.search(tournamentData.name);
       await pm.tournaments.openTournament(tournamentData.name);
       await page.waitForURL(/\/tournaments\/[a-zA-Z0-9_-]+/);
-      await TournamentAssertions.assertTournamentDetailsVisible(pm.tournamentDetails, tournamentData.name);
+      await expect(pm.tournamentDetails.pageContainer).toBeVisible();
+      await expect(pm.tournamentDetails.hero).toBeVisible();
+      await expect(pm.tournamentDetails.heroName).toContainText(tournamentData.name);
     });
 
     await test.step('Switch between tabs and verify content containers', async () => {
@@ -135,8 +155,8 @@ test.describe('Tournament Management CRUD & Validation Operations', () => {
     });
 
     await test.step('Verify success alert and updated hero title in real-time', async () => {
-      await TournamentAssertions.assertSuccessAlertVisible(
-        pm.tournamentDetails,
+      await expect(pm.tournamentDetails.alertSuccess).toBeVisible();
+      await expect(pm.tournamentDetails.alertSuccess).toContainText(
         /Tournament details updated successfully/i,
       );
       await expect(pm.tournamentDetails.heroName).toContainText(updatedName);
@@ -162,16 +182,16 @@ test.describe('Tournament Management CRUD & Validation Operations', () => {
 
     await test.step('Change status to ACTIVE via Settings tab', async () => {
       await pm.tournamentDetails.changeStatus('ACTIVE');
-      await TournamentAssertions.assertSuccessAlertVisible(
-        pm.tournamentDetails,
+      await expect(pm.tournamentDetails.alertSuccess).toBeVisible();
+      await expect(pm.tournamentDetails.alertSuccess).toContainText(
         /Tournament status updated to ACTIVE/i,
       );
     });
 
     await test.step('Register current authenticated user for tournament', async () => {
       await pm.tournamentDetails.register();
-      await TournamentAssertions.assertSuccessAlertVisible(
-        pm.tournamentDetails,
+      await expect(pm.tournamentDetails.alertSuccess).toBeVisible();
+      await expect(pm.tournamentDetails.alertSuccess).toContainText(
         /Successfully registered for tournament/i,
       );
     });
@@ -208,7 +228,7 @@ test.describe('Tournament Management CRUD & Validation Operations', () => {
     await test.step('Verify redirection and tournament removed from directory', async () => {
       await page.waitForURL(/\/tournaments$/);
       await pm.tournaments.search(tournamentData.name);
-      await TournamentAssertions.assertTournamentNotInGrid(pm.tournaments, tournamentData.name);
+      await expect(pm.tournaments.getTournamentCard(tournamentData.name)).not.toBeVisible();
     });
   });
 });

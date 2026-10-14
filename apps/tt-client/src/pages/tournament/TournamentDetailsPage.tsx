@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, CheckCircle2, Trophy } from 'lucide-react';
 import PageContainer from '@/components/layout/PageContainer';
 import Input from '@/components/ui/input/Input';
 import Textarea from '@/components/ui/input/TextArea';
@@ -59,15 +59,39 @@ export default function TournamentDetailsPage() {
     isSeeding || isGenerating || isRecording || isCreatingMatch || isClosingReg || isDrawingWave || isRegisteringTeam;
   const tournament = data?.tournament;
 
+  // Dual format division management
+  const [selectedDivision, setSelectedDivision] = useState<'SINGLES' | 'DOUBLES'>('SINGLES');
+
+  const singlesTournament = useMemo(() => {
+    if (!tournament?.childTournaments) return null;
+    return tournament.childTournaments.find((c: any) => c.division === 'SINGLES') || null;
+  }, [tournament]);
+
+  const doublesTournament = useMemo(() => {
+    if (!tournament?.childTournaments) return null;
+    return tournament.childTournaments.find((c: any) => c.division === 'DOUBLES') || null;
+  }, [tournament]);
+
+  // If tournament has dual divisions, activeTournament points to the selected sub-tournament for all match & roster operations!
+  const activeTournament = useMemo(() => {
+    if (!tournament?.hasBothDivisions) return tournament;
+    if (selectedDivision === 'SINGLES') {
+      return singlesTournament || tournament;
+    }
+    return doublesTournament || tournament;
+  }, [tournament, selectedDivision, singlesTournament, doublesTournament]);
+
+  const targetId = activeTournament?.id || id;
+
   // Check if current user is already registered (directly or in a team roster)
   const isAlreadyRegistered = useMemo(() => {
-    if (!user?.id || !tournament) return false;
-    if (tournament.participants && tournament.participants.includes(user.id)) return true;
-    if (tournament.teams && tournament.teams.some((team: any) => team.members?.some((m: any) => m.userId === user.id))) {
+    if (!user?.id || !activeTournament) return false;
+    if (activeTournament.participants && activeTournament.participants.includes(user.id)) return true;
+    if (activeTournament.teams && activeTournament.teams.some((team: any) => team.members?.some((m: any) => m.userId === user.id))) {
       return true;
     }
     return false;
-  }, [user?.id, tournament]);
+  }, [user?.id, activeTournament]);
 
   const [editName, setEditName] = useState('');
   const [editCategory, setEditCategory] = useState('');
@@ -96,8 +120,8 @@ export default function TournamentDetailsPage() {
   };
 
   const handleRegister = async () => {
-    if (!id) return;
-    if (tournament?.competitionType === 'TEAM') {
+    if (!targetId) return;
+    if (activeTournament?.competitionType === 'TEAM') {
       setIsTeamModalOpen(true);
       return;
     }
@@ -106,12 +130,12 @@ export default function TournamentDetailsPage() {
       setActionError(null);
       const res = await registerTournament({
         variables: {
-          id,
+          id: targetId,
           participantId: user?.id,
         },
       });
       const updatedMatches = res.data?.registerTournament?.matchDetails || [];
-      if (updatedMatches.length > 0 && (tournament?.matchDetails?.length || 0) === 0) {
+      if (updatedMatches.length > 0 && (activeTournament?.matchDetails?.length || 0) === 0) {
         setActionSuccess('Successfully registered! All player slots filled — Round 1 bracket matches have been randomly generated!');
       } else {
         setActionSuccess('Successfully registered for tournament!');
@@ -127,14 +151,14 @@ export default function TournamentDetailsPage() {
     captainId: string;
     members: Array<{ userId: string; roleInTeam: string }>;
   }) => {
-    if (!id) return;
+    if (!targetId) return;
     try {
       setActionSuccess(null);
       setActionError(null);
       await registerTeam({
         variables: {
+          id: targetId,
           input: {
-            tournamentId: id,
             name: teamData.name,
             captainId: teamData.captainId,
             members: teamData.members,
@@ -150,11 +174,11 @@ export default function TournamentDetailsPage() {
   };
 
   const handleCloseRegistration = async () => {
-    if (!id) return;
+    if (!targetId) return;
     try {
       setActionSuccess(null);
       setActionError(null);
-      await closeRegistration({ variables: { id } });
+      await closeRegistration({ variables: { id: targetId } });
       setActionSuccess('Registration window officially closed! Wave 1 fixtures can now be drawn.');
       await refetch();
     } catch (err: any) {
@@ -163,11 +187,11 @@ export default function TournamentDetailsPage() {
   };
 
   const handleDrawWaveFixtures = async () => {
-    if (!id) return;
+    if (!targetId) return;
     try {
       setActionSuccess(null);
       setActionError(null);
-      const res = await drawWaveFixtures({ variables: { id } });
+      const res = await drawWaveFixtures({ variables: { id: targetId } });
       const currentWave = res.data?.drawWaveFixtures?.currentWave || 1;
       setActionSuccess(`Wave ${currentWave} fixtures drawn successfully! Matches are scheduled.`);
       await refetch();
@@ -177,14 +201,14 @@ export default function TournamentDetailsPage() {
   };
 
   const handleSeedPlayers = async () => {
-    if (!id) return;
+    if (!targetId) return;
     try {
       setActionSuccess(null);
       setActionError(null);
       await seedTournamentPlayers({
         variables: {
-          id,
-          playerCount: tournament?.maxPlayers || 4,
+          id: targetId,
+          playerCount: activeTournament?.maxPlayers || 4,
         },
       });
       setActionSuccess('Dummy players joined and Round 1 bracket matches have been randomly generated!');
@@ -195,12 +219,12 @@ export default function TournamentDetailsPage() {
   };
 
   const handleGenerateMatches = async () => {
-    if (!id) return;
+    if (!targetId) return;
     try {
       setActionSuccess(null);
       setActionError(null);
       await generateTournamentMatches({
-        variables: { id },
+        variables: { id: targetId },
       });
       setActionSuccess('Bracket matches randomly drawn and scheduled!');
       await refetch();
@@ -274,7 +298,7 @@ export default function TournamentDetailsPage() {
       await createCustomMatch({
         variables: {
           input: {
-            tournamentId: id,
+            tournamentId: targetId,
             playerAId,
             playerBId,
             roundName,
@@ -383,9 +407,41 @@ export default function TournamentDetailsPage() {
           </div>
         )}
 
+        {/* Dual Champions Banner */}
+        {tournament.hasBothDivisions &&
+          (singlesTournament?.winnerName || doublesTournament?.winnerName) && (
+            <div
+              data-testid="dual-champions-banner"
+              className="rounded-panel border border-amber-500/30 bg-amber-500/10 p-5 text-amber-200 shadow-glow"
+            >
+              <div className="flex items-center gap-2 font-bold text-base text-amber-300">
+                <Trophy className="size-5 text-amber-400" />
+                <span>Championship Official Winners</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3 text-sm">
+                <div className="rounded-card bg-surface-900/80 p-3.5 border border-amber-500/20">
+                  <span className="text-xs text-slate-400 block font-medium">
+                    🏓 Singles Champion
+                  </span>
+                  <span className="font-bold text-white text-base">
+                    {singlesTournament?.winnerName || 'In Progress...'}
+                  </span>
+                </div>
+                <div className="rounded-card bg-surface-900/80 p-3.5 border border-amber-500/20">
+                  <span className="text-xs text-slate-400 block font-medium">
+                    👥 Doubles Champions
+                  </span>
+                  <span className="font-bold text-white text-base">
+                    {doublesTournament?.winnerName || 'In Progress...'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
         {/* Hero Section */}
         <TournamentHero
-          tournament={tournament}
+          tournament={activeTournament}
           isAlreadyRegistered={isAlreadyRegistered}
           onRegister={handleRegister}
           onDelete={handleDelete}
@@ -393,18 +449,68 @@ export default function TournamentDetailsPage() {
           isDeleting={isDeleting}
         />
 
+        {/* Division Switcher (When Tournament has Both Singles & Doubles) */}
+        {tournament.hasBothDivisions && (
+          <div
+            data-testid="division-switcher"
+            className="p-1.5 rounded-card bg-surface-900 border border-white/[0.08] flex flex-wrap items-center gap-2"
+          >
+            <button
+              type="button"
+              data-testid="division-singles-btn"
+              onClick={() => setSelectedDivision('SINGLES')}
+              className={`flex-1 min-w-[200px] flex items-center justify-center gap-2.5 py-3 px-4 rounded-button text-sm font-semibold transition-all ${
+                selectedDivision === 'SINGLES'
+                  ? 'bg-primary text-white shadow-glow'
+                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+              }`}
+            >
+              <span>🏓 Singles Division</span>
+              <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs text-white">
+                {singlesTournament?.participants?.length || 0} Players
+              </span>
+              {singlesTournament?.winnerName && (
+                <span className="rounded bg-emerald-500/20 text-emerald-300 text-[11px] px-2 py-0.5 font-medium border border-emerald-500/30">
+                  🏆 {singlesTournament.winnerName}
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              data-testid="division-doubles-btn"
+              onClick={() => setSelectedDivision('DOUBLES')}
+              className={`flex-1 min-w-[200px] flex items-center justify-center gap-2.5 py-3 px-4 rounded-button text-sm font-semibold transition-all ${
+                selectedDivision === 'DOUBLES'
+                  ? 'bg-primary text-white shadow-glow'
+                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+              }`}
+            >
+              <span>👥 Doubles Division</span>
+              <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs text-white">
+                {doublesTournament?.teams?.length || 0} Teams
+              </span>
+              {doublesTournament?.winnerName && (
+                <span className="rounded bg-emerald-500/20 text-emerald-300 text-[11px] px-2 py-0.5 font-medium border border-emerald-500/30">
+                  🏆 {doublesTournament.winnerName}
+                </span>
+              )}
+            </button>
+          </div>
+        )}
+
         {/* Tab Navigation */}
         <TournamentTabs
           activeTab={activeTab}
           onChange={setActiveTab}
-          participantCount={tournament.participants?.length || 0}
+          participantCount={activeTournament.participants?.length || 0}
         />
 
         {/* Tab Content */}
         {activeTab === 'overview' && (
           <div data-testid="tab-content-overview">
             <TournamentOverview
-              tournament={tournament}
+              tournament={activeTournament}
               onSeedPlayers={handleSeedPlayers}
               onGenerateMatches={handleGenerateMatches}
               onCloseRegistration={handleCloseRegistration}
@@ -420,13 +526,13 @@ export default function TournamentDetailsPage() {
         {activeTab === 'participants' && (
           <div data-testid="tab-content-participants">
             <ParticipantList
-              participants={tournament.participants}
-              participantDetails={tournament.participantDetails}
-              maxPlayers={tournament.maxPlayers}
+              participants={activeTournament.participants}
+              participantDetails={activeTournament.participantDetails}
+              maxPlayers={activeTournament.maxPlayers}
               onSeedPlayers={handleSeedPlayers}
               isSeeding={isProcessing}
-              tournamentStatus={tournament.status}
-              hasMatches={(tournament.matchDetails?.length || 0) > 0}
+              tournamentStatus={activeTournament.status}
+              hasMatches={(activeTournament.matchDetails?.length || 0) > 0}
             />
           </div>
         )}
@@ -434,14 +540,14 @@ export default function TournamentDetailsPage() {
         {activeTab === 'matches' && (
           <div data-testid="tab-content-matches">
             <TournamentMatchList
-              matches={tournament.matches}
-              matchDetails={tournament.matchDetails}
-              participantDetails={tournament.participantDetails}
-              participantCount={tournament.participants?.length || 0}
-              tournamentStatus={tournament.status}
-              winnerName={tournament.winnerName}
-              currentWave={tournament.currentWave}
-              isRegistrationClosed={tournament.isRegistrationClosed}
+              matches={activeTournament.matches}
+              matchDetails={activeTournament.matchDetails}
+              participantDetails={activeTournament.participantDetails}
+              participantCount={activeTournament.participants?.length || 0}
+              tournamentStatus={activeTournament.status}
+              winnerName={activeTournament.winnerName}
+              currentWave={activeTournament.currentWave}
+              isRegistrationClosed={activeTournament.isRegistrationClosed}
               onSeedPlayers={handleSeedPlayers}
               onGenerateMatches={handleGenerateMatches}
               onCloseRegistration={handleCloseRegistration}

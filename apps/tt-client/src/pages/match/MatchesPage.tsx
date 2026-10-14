@@ -115,7 +115,7 @@ export default function MatchesPage() {
                   key={match.id}
                   data-testid="match-card"
                   data-match-id={match.id}
-                  onClick={() => navigate(`/tournaments/${match.tournamentId}`)}
+                  onClick={() => navigate(`/matches/${match.id}`)}
                   className="glass-card group cursor-pointer rounded-card border border-white/10 p-5 transition-all hover:-translate-y-0.5 hover:border-primary/40"
                 >
                   {/* Tournament & Status Header */}
@@ -180,7 +180,7 @@ export default function MatchesPage() {
                         Winner: {match.winnerName}
                       </span>
                     ) : (
-                      <span>Click to view bracket & record score</span>
+                      <span>Enter match arena &amp; record rounds</span>
                     )}
                     <ExternalLink className="size-3.5 text-slate-500 group-hover:text-primary transition-colors" />
                   </div>

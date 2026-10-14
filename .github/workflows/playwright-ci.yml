@@ -1,0 +1,111 @@
+name: Playwright E2E CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e-tests:
+    name: Run Playwright E2E Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    # Optional local MongoDB service container for isolated, blazing fast CI testing
+    services:
+      mongodb:
+        image: mongo:7.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd mongosh
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      CI: true
+      PORT: 4000
+      # Uses GitHub Repository Secret MONGO_URI if provided, otherwise uses local container
+      MONGO_URI: ${{ secrets.MONGO_URI || 'mongodb://127.0.0.1:27017/tt_ci' }}
+      JWT_ACCESS_SECRET: ${{ secrets.JWT_ACCESS_SECRET || 'ci_jwt_access_secret_super_secure' }}
+      JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET || 'ci_jwt_refresh_secret_super_secure' }}
+      VITE_API_URL: http://localhost:4000/graphql
+      BASE_URL: http://localhost:4200
+      TEST_USERNAME: ${{ secrets.TEST_USERNAME || 'lovely.kumar@testingxperts.com' }}
+      TEST_PASSWORD: ${{ secrets.TEST_PASSWORD || 'User@123' }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Node Dependencies
+        run: npm ci
+
+      - name: Build Backend Gateway
+        run: npm exec nx build gateway
+
+      - name: Build Frontend Application
+        run: npm exec nx build tt-client
+
+      - name: Install Playwright Browsers with OS Dependencies
+        run: npx playwright install --with-deps chromium
+
+      - name: Seed Roster Players
+        run: npm run seed:players
+
+      - name: Start Backend Gateway Service
+        run: |
+          node apps/gateway/dist/main.js &
+          npx wait-on http://localhost:4000/graphql --timeout 60000
+
+      - name: Start Frontend Preview Service
+        run: |
+          npx vite preview apps/tt-client --port 4200 --host &
+          npx wait-on http://localhost:4200 --timeout 60000
+
+      - name: Run Playwright E2E Test Suite
+        run: npm exec playwright test -- --project=chromium
+        working-directory: apps/tt-client
+
+      - name: Purge Test Artifacts (Teardown)
+        if: always()
+        run: npm run test:cleanup
+
+      - name: Synchronize Test Catalog Excel Sheet
+        if: always()
+        run: npm run update:test-sheet
+
+      - name: Upload Playwright Test Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/tt-client/playwright-report/
+          retention-days: 14
+
+      - name: Upload Synchronized Test Catalog (web-tests.xlsx)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-catalog-sheet
+          path: |
+            apps/tt-client/test-artifact/web-tests.xlsx
+            test-artifact/web-tests.xlsx
+          retention-days: 30

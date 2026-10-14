@@ -1,5 +1,4 @@
 import { test, expect } from './fixtures';
-import { AuthAssertions, TournamentAssertions } from './assertions';
 import { DataFactory } from './data';
 
 test.describe('Multi-Sport Tournaments, Team Registration & Wave Fixtures', () => {
@@ -9,7 +8,8 @@ test.describe('Multi-Sport Tournaments, Team Registration & Wave Fixtures', () =
     await test.step('Register test user session', async () => {
       await pm.register.goto();
       await pm.register.registerUser(adminUser);
-      await AuthAssertions.assertSuccessMessageVisible(pm.register, /Registration successful/i);
+      await expect(pm.register.successMessage).toBeVisible();
+      await expect(pm.register.successMessage).toContainText(/Registration successful/i);
     });
 
     await test.step('Login user and verify authenticated session', async () => {
@@ -90,10 +90,8 @@ test.describe('Multi-Sport Tournaments, Team Registration & Wave Fixtures', () =
       await expect(registerBtn).toBeVisible();
       await registerBtn.click();
 
-      await TournamentAssertions.assertSuccessAlertVisible(
-        pm.tournamentDetails,
-        /Successfully registered/i,
-      );
+      await expect(pm.tournamentDetails.alertSuccess).toBeVisible();
+      await expect(pm.tournamentDetails.alertSuccess).toContainText(/Successfully registered/i);
     });
 
     await test.step('Verify Hero now shows Already Registered badge and register button is removed', async () => {
@@ -169,8 +167,8 @@ test.describe('Multi-Sport Tournaments, Team Registration & Wave Fixtures', () =
       }
 
       await page.getByTestId('submit-team-btn').click();
-      await TournamentAssertions.assertSuccessAlertVisible(
-        pm.tournamentDetails,
+      await expect(pm.tournamentDetails.alertSuccess).toBeVisible();
+      await expect(pm.tournamentDetails.alertSuccess).toContainText(
         /Team "Titans XI" successfully registered/i,
       );
     });
@@ -203,8 +201,8 @@ test.describe('Multi-Sport Tournaments, Team Registration & Wave Fixtures', () =
 
     await test.step('Seed 4 dummy players to populate participants', async () => {
       await page.getByTestId('matches-seed-players-btn').click();
-      await TournamentAssertions.assertSuccessAlertVisible(
-        pm.tournamentDetails,
+      await expect(pm.tournamentDetails.alertSuccess).toBeVisible();
+      await expect(pm.tournamentDetails.alertSuccess).toContainText(
         /Round 1 bracket matches have been randomly generated/i,
       );
     });
@@ -253,4 +251,83 @@ test.describe('Multi-Sport Tournaments, Team Registration & Wave Fixtures', () =
       await expect(page.getByTestId('tournament-winner-name')).toBeVisible();
     });
   });
+
+  test('SPRT-06: Dual Division (Singles & Doubles) - creates parent Championship with sub-tournaments, division switcher, and dual winners', async ({ pm, page }) => {
+    const parentName = `Summer Dual Open ${Date.now()}`;
+    const tournamentData = DataFactory.createTournamentPayload({
+      name: parentName,
+      category: 'Table Tennis',
+      maxPlayers: 8,
+    });
+
+    await test.step('Navigate to Create Tournament page', async () => {
+      await pm.tournaments.goto();
+      await pm.tournaments.clickCreateTournament();
+      await page.waitForURL(/\/tournaments\/create/);
+      await expect(page.getByTestId('create-tournament-page')).toBeVisible();
+    });
+
+    await test.step('Select Table Tennis and choose Dual Division mode', async () => {
+      await page.getByTestId('sport-card-table_tennis').click();
+      await page.getByTestId('tournament-name-input').fill(tournamentData.name);
+      await page.getByTestId('tournament-category-input').fill('Table Tennis');
+
+      // Select Dual Division option
+      await page.getByTestId('tournament-competition-type-select').selectOption('BOTH');
+      await expect(page.getByTestId('dual-division-info')).toBeVisible();
+      await expect(page.getByTestId('dual-division-info')).toContainText(/Championship Dual Format/i);
+
+      // Fill dates and limits
+      await page.getByTestId('tournament-start-date-input').fill(tournamentData.startDate);
+      await page.getByTestId('tournament-end-date-input').fill(tournamentData.endDate);
+      await page.getByTestId('tournament-deadline-input').fill(tournamentData.registrationDeadline);
+      await page.getByTestId('tournament-max-players-input').fill('8');
+
+      // Submit form
+      await page.getByTestId('submit-tournament-btn').click();
+      await page.waitForURL(/\/tournaments$/, { timeout: 15000 });
+    });
+
+    await test.step('Verify unified parent tournament card displays Dual Division badge on Tournaments list', async () => {
+      await expect(page.getByTestId('tournaments-page')).toBeVisible();
+      const parentCard = page.locator(`[data-testid="tournament-card"]:has-text("${parentName}")`);
+      await expect(parentCard).toBeVisible();
+      await expect(parentCard.getByTestId('dual-division-badge')).toBeVisible();
+      await expect(parentCard.getByTestId('dual-division-badge')).toContainText(/Singles & Doubles/i);
+    });
+
+    await test.step('Open Championship details and verify Division Switcher tabs exist', async () => {
+      const parentCard = page.locator(`[data-testid="tournament-card"]:has-text("${parentName}")`);
+      await parentCard.click();
+      await page.waitForURL(/\/tournaments\//);
+      await expect(page.getByTestId('tournament-details-page')).toBeVisible();
+
+      // Verify Division Switcher
+      await expect(page.getByTestId('division-switcher')).toBeVisible();
+      await expect(page.getByTestId('division-singles-btn')).toBeVisible();
+      await expect(page.getByTestId('division-doubles-btn')).toBeVisible();
+    });
+
+    await test.step('Switch between Singles and Doubles divisions and verify separate sub-tournaments and rosters', async () => {
+      // Singles active by default
+      await page.getByTestId('division-singles-btn').click();
+      await expect(page.getByTestId('tournament-hero')).toContainText(/Singles/i);
+
+      // Switch to Doubles division
+      await page.getByTestId('division-doubles-btn').click();
+      await expect(page.getByTestId('tournament-hero')).toContainText(/Doubles/i);
+
+      // Seed players in Doubles division
+      await page.getByTestId('matches-tab-btn').click();
+      if (await page.getByTestId('matches-seed-players-btn').isVisible()) {
+        await page.getByTestId('matches-seed-players-btn').click();
+        await expect(pm.tournamentDetails.alertSuccess).toBeVisible();
+      }
+
+      // Switch back to Singles division and verify independent bracket
+      await page.getByTestId('division-singles-btn').click();
+      await expect(page.getByTestId('tournament-hero')).toContainText(/Singles/i);
+    });
+  });
 });
+

@@ -1,5 +1,4 @@
 import { test, expect } from './fixtures';
-import { AuthAssertions, TournamentAssertions } from './assertions';
 import { DataFactory } from './data';
 
 test.describe('Tournament Match Generation, Bracket Progression & Winner Finalization', () => {
@@ -9,7 +8,8 @@ test.describe('Tournament Match Generation, Bracket Progression & Winner Finaliz
     await test.step('Register active user for test session', async () => {
       await pm.register.goto();
       await pm.register.registerUser(adminUser);
-      await AuthAssertions.assertSuccessMessageVisible(pm.register, /Registration successful/i);
+      await expect(pm.register.successMessage).toBeVisible();
+      await expect(pm.register.successMessage).toContainText(/Registration successful/i);
     });
 
     await test.step('Login and verify dashboard session', async () => {
@@ -44,8 +44,8 @@ test.describe('Tournament Match Generation, Bracket Progression & Winner Finaliz
 
     await test.step('Seed 4 dummy players and verify Round 1 Semifinals matches are randomly generated', async () => {
       await page.getByTestId('matches-seed-players-btn').click();
-      await TournamentAssertions.assertSuccessAlertVisible(
-        pm.tournamentDetails,
+      await expect(pm.tournamentDetails.alertSuccess).toBeVisible();
+      await expect(pm.tournamentDetails.alertSuccess).toContainText(
         /Round 1 bracket matches have been randomly generated/i,
       );
       await expect(page.getByTestId('bracket-round-1')).toBeVisible();
@@ -69,8 +69,8 @@ test.describe('Tournament Match Generation, Bracket Progression & Winner Finaliz
       await firstMatch.getByTestId('match-score-b-input').fill('6');
       await firstMatch.getByTestId('record-match-result-btn').click();
 
-      await TournamentAssertions.assertSuccessAlertVisible(
-        pm.tournamentDetails,
+      await expect(pm.tournamentDetails.alertSuccess).toBeVisible();
+      await expect(pm.tournamentDetails.alertSuccess).toContainText(
         /Winner has automatically advanced to the next round match/i,
       );
 
@@ -99,8 +99,8 @@ test.describe('Tournament Match Generation, Bracket Progression & Winner Finaliz
       await finalMatch.getByTestId('match-score-b-input').fill('9');
       await finalMatch.getByTestId('record-match-result-btn').click();
 
-      await TournamentAssertions.assertSuccessAlertVisible(
-        pm.tournamentDetails,
+      await expect(pm.tournamentDetails.alertSuccess).toBeVisible();
+      await expect(pm.tournamentDetails.alertSuccess).toContainText(
         /crowned the Official Tournament Winner/i,
       );
 

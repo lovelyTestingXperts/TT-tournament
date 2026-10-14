@@ -1,5 +1,4 @@
 import { test, expect } from './fixtures';
-import { MemberAssertions, AuthAssertions } from './assertions';
 import { DataFactory } from './data';
 
 test.describe('User & Member Management CRUD Operations', () => {
@@ -10,7 +9,8 @@ test.describe('User & Member Management CRUD Operations', () => {
     await test.step('Register active admin user', async () => {
       await pm.register.goto();
       await pm.register.registerUser(adminUser);
-      await AuthAssertions.assertSuccessMessageVisible(pm.register, /Registration successful/i);
+      await expect(pm.register.successMessage).toBeVisible();
+      await expect(pm.register.successMessage).toContainText(/Registration successful/i);
     });
 
     await test.step('Login to authenticate session', async () => {
@@ -26,13 +26,22 @@ test.describe('User & Member Management CRUD Operations', () => {
 
     await test.step('Navigate to member management directory', async () => {
       await pm.members.goto();
-      await MemberAssertions.assertMembersPageVisible(pm.members);
+      await expect(pm.members.header).toBeVisible();
+      await expect(pm.members.addUserButton).toBeVisible();
+      await expect(pm.members.searchInput).toBeVisible();
+      await expect(pm.members.table).toBeVisible();
     });
 
     await test.step('Open user creation form', async () => {
       await pm.members.addUserButton.click();
       await page.waitForURL(/\/members\/create/);
-      await MemberAssertions.assertCreateMemberFormVisible(pm.createMember);
+      await expect(pm.createMember.form).toBeVisible();
+      await expect(pm.createMember.firstNameInput).toBeVisible();
+      await expect(pm.createMember.lastNameInput).toBeVisible();
+      await expect(pm.createMember.emailInput).toBeVisible();
+      await expect(pm.createMember.passwordInput).toBeVisible();
+      await expect(pm.createMember.roleSelect).toBeVisible();
+      await expect(pm.createMember.submitButton).toBeVisible();
     });
 
     await test.step('Fill and submit user creation form with DataFactory payload', async () => {
@@ -41,13 +50,16 @@ test.describe('User & Member Management CRUD Operations', () => {
 
     await test.step('Verify redirection back to member directory', async () => {
       await page.waitForURL(/\/members$/);
-      await MemberAssertions.assertMembersPageVisible(pm.members);
+      await expect(pm.members.header).toBeVisible();
+      await expect(pm.members.addUserButton).toBeVisible();
+      await expect(pm.members.searchInput).toBeVisible();
+      await expect(pm.members.table).toBeVisible();
     });
 
     await test.step('Search for the newly created user and verify presence in table', async () => {
       await pm.members.search(newMember.email);
-      await MemberAssertions.assertMemberInList(pm.members, newMember.email);
-      await MemberAssertions.assertMemberInList(pm.members, newMember.firstName);
+      await expect(pm.members.table).toContainText(newMember.email);
+      await expect(pm.members.table).toContainText(newMember.firstName);
     });
   });
 
@@ -62,7 +74,7 @@ test.describe('User & Member Management CRUD Operations', () => {
 
     await test.step('Filter/search to locate the created user', async () => {
       await pm.members.search(newMember.email);
-      await MemberAssertions.assertMemberInList(pm.members, newMember.email);
+      await expect(pm.members.table).toContainText(newMember.email);
     });
 
     await test.step('Click user name link to navigate to details page', async () => {
@@ -74,7 +86,9 @@ test.describe('User & Member Management CRUD Operations', () => {
     await test.step('Verify member details page renders with matching identity', async () => {
       await page.waitForURL(/\/members\/[a-zA-Z0-9_-]+/);
       await expect(pm.memberDetails.profileCard).toBeVisible();
-      await MemberAssertions.assertProfileFullName(pm.memberDetails, `${newMember.firstName} ${newMember.lastName}`);
+      await expect(pm.memberDetails.fullNameHeader).toContainText(
+        `${newMember.firstName} ${newMember.lastName}`,
+      );
     });
   });
 
@@ -98,9 +112,13 @@ test.describe('User & Member Management CRUD Operations', () => {
       await memberActionsBtn.click();
       const editBtn = page.getByRole('button', { name: /edit member/i });
       await editBtn.click();
-
       await page.waitForURL(/\/members\/.*\/edit/);
-      await MemberAssertions.assertEditMemberFormVisible(pm.editMember);
+      await expect(pm.editMember.form).toBeVisible();
+      await expect(pm.editMember.firstNameInput).toBeVisible();
+      await expect(pm.editMember.lastNameInput).toBeVisible();
+      await expect(pm.editMember.roleSelect).toBeVisible();
+      await expect(pm.editMember.statusSelect).toBeVisible();
+      await expect(pm.editMember.submitButton).toBeVisible();
     });
 
     await test.step('Apply updates to user details', async () => {
@@ -113,7 +131,9 @@ test.describe('User & Member Management CRUD Operations', () => {
 
     await test.step('Verify redirection to profile and updated details', async () => {
       await page.waitForURL(/\/members\/[a-zA-Z0-9_-]+$/);
-      await MemberAssertions.assertProfileFullName(pm.memberDetails, `${updatedFirstName} ${updatedLastName}`);
+      await expect(pm.memberDetails.fullNameHeader).toContainText(
+        `${updatedFirstName} ${updatedLastName}`,
+      );
     });
   });
 
@@ -176,7 +196,8 @@ test.describe('User & Member Management CRUD Operations', () => {
     await test.step('Verify redirected to /members and user is no longer listed', async () => {
       await page.waitForURL(/\/members$/);
       await pm.members.search(userToDelete.email);
-      await MemberAssertions.assertMemberNotInList(pm.members, userToDelete.email);
+      const emailLocator = pm.members.page.getByText(userToDelete.email, { exact: true });
+      await expect(emailLocator).not.toBeVisible();
     });
   });
 });

@@ -60,6 +60,17 @@ export class UpdateTournamentInput {
   status?: TournamentStatus;
 
   @Field({ nullable: true })
+  @IsBoolean()
+  @IsOptional()
+  hasBothDivisions?: boolean;
+
+  @Field({ nullable: true })
+  @IsString()
+  @IsOptional()
+  division?: string;
+
+
+  @Field({ nullable: true })
   @IsString()
   @IsOptional()
   @IsUrl()

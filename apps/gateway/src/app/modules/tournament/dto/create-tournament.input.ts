@@ -3,6 +3,7 @@ import {
   InputType,
 } from '@nestjs/graphql';
 import {
+  IsBoolean,
   IsDate,
   IsEnum,
   IsInt,
@@ -50,6 +51,17 @@ export class CreateTournamentInput {
   @IsString()
   @IsOptional()
   competitionType?: string;
+
+  @Field({ nullable: true, defaultValue: false })
+  @IsBoolean()
+  @IsOptional()
+  hasBothDivisions?: boolean;
+
+  @Field({ nullable: true })
+  @IsString()
+  @IsOptional()
+  division?: string;
+
 
   @Field({ nullable: true })
   @IsString()

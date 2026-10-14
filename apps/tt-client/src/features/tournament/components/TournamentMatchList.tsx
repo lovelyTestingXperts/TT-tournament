@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Swords,
   Trophy,
@@ -8,6 +9,7 @@ import {
   Clock,
   Shuffle,
   Award,
+  Play,
 } from 'lucide-react';
 
 export type MatchDetail = {
@@ -586,6 +588,15 @@ export default function TournamentMatchList({
                             </div>
 
                             <div className="flex items-center gap-2">
+                              <Link
+                                to={`/matches/${match.id}`}
+                                data-testid={`enter-match-arena-${match.id}-btn`}
+                                className="inline-flex items-center gap-1.5 rounded-button bg-primary px-3 py-1.5 text-xs font-bold text-white shadow-glow transition-all hover:bg-brand-vibrant"
+                              >
+                                <Play className="size-3.5" />
+                                <span>Match Arena &amp; Rounds</span>
+                              </Link>
+
                               {onOpenScoreModal && (
                                 <button
                                   type="button"

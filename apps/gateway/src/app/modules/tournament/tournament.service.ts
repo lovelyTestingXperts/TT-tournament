@@ -97,12 +97,92 @@ export class TournamentService {
         registrationDeadline: deadline,
         createdBy,
         status: TournamentStatus.DRAFT,
+        hasBothDivisions: Boolean(createTournamentInput.hasBothDivisions),
+        division: createTournamentInput.hasBothDivisions
+          ? 'CHAMPIONSHIP'
+          : createTournamentInput.division || null,
+        parentTournamentId: null,
+        childTournamentIds: [],
         participants: [],
         matches: [],
         winnerId: null,
         winnerName: null,
         isDeleted: false,
       });
+
+      if (createTournamentInput.hasBothDivisions) {
+        // Spawn Singles sub-tournament
+        const singlesTournament = await this.tournamentModel.create({
+          name: `${tournament.name} (Singles)`,
+          description: tournament.description
+            ? `${tournament.description}\n(Singles Division)`
+            : 'Official Singles Division Tournament',
+          category: tournament.category || 'Table Tennis',
+          sport: tournament.sport || 'TABLE_TENNIS',
+          competitionType: 'INDIVIDUAL',
+          division: 'SINGLES',
+          parentTournamentId: tournament._id,
+          scoringFormat: tournament.scoringFormat || 'SETS_TO_11',
+          type: tournament.type,
+          format: tournament.format,
+          visibility: tournament.visibility,
+          maxPlayers: tournament.maxPlayers || 8,
+          prizePool: tournament.prizePool
+            ? Math.round(tournament.prizePool / 2)
+            : 0,
+          startDate: start,
+          endDate: end,
+          registrationDeadline: deadline,
+          createdBy,
+          status: TournamentStatus.DRAFT,
+          participants: [],
+          matches: [],
+          teams: [],
+          winnerId: null,
+          winnerName: null,
+          isDeleted: false,
+        });
+
+        // Spawn Doubles sub-tournament
+        const doublesTournament = await this.tournamentModel.create({
+          name: `${tournament.name} (Doubles)`,
+          description: tournament.description
+            ? `${tournament.description}\n(Doubles Division)`
+            : 'Official Doubles Division Tournament',
+          category: tournament.category || 'Table Tennis',
+          sport: tournament.sport || 'TABLE_TENNIS',
+          competitionType: 'TEAM',
+          division: 'DOUBLES',
+          minTeamSize: 2,
+          maxTeamSize: 2,
+          parentTournamentId: tournament._id,
+          scoringFormat: tournament.scoringFormat || 'SETS_TO_11',
+          type: tournament.type,
+          format: tournament.format,
+          visibility: tournament.visibility,
+          maxPlayers: tournament.maxPlayers || 8,
+          prizePool: tournament.prizePool
+            ? Math.round(tournament.prizePool / 2)
+            : 0,
+          startDate: start,
+          endDate: end,
+          registrationDeadline: deadline,
+          createdBy,
+          status: TournamentStatus.DRAFT,
+          participants: [],
+          matches: [],
+          teams: [],
+          winnerId: null,
+          winnerName: null,
+          isDeleted: false,
+        });
+
+        tournament.childTournamentIds = [
+          singlesTournament._id,
+          doublesTournament._id,
+        ];
+        await tournament.save();
+      }
 
       return this.hydrateTournamentEntity(tournament);
     } catch (error: any) {
@@ -138,6 +218,7 @@ export class TournamentService {
 
       const filter: Record<string, any> = {
         isDeleted: false,
+        parentTournamentId: null,
       };
 
       if (status) {
@@ -300,6 +381,21 @@ export class TournamentService {
         .exec();
 
       await this.matchModel.deleteMany({ tournamentId: tournament._id }).exec();
+
+      if (
+        tournament.childTournamentIds &&
+        tournament.childTournamentIds.length > 0
+      ) {
+        await this.tournamentModel
+          .updateMany(
+            { _id: { $in: tournament.childTournamentIds } },
+            { isDeleted: true, deletedAt: new Date() },
+          )
+          .exec();
+        await this.matchModel
+          .deleteMany({ tournamentId: { $in: tournament.childTournamentIds } })
+          .exec();
+      }
 
       return true;
     } catch (error) {
@@ -582,6 +678,23 @@ export class TournamentService {
       throw new BadRequestException('Tournament is already completed');
     }
 
+    if (
+      tournament.hasBothDivisions &&
+      tournament.childTournamentIds &&
+      tournament.childTournamentIds.length > 0
+    ) {
+      for (const childId of tournament.childTournamentIds) {
+        await this.seedTournamentPlayersAndMatches(
+          childId.toString(),
+          desiredPlayerCount,
+        );
+      }
+      const refreshed = await this.tournamentModel
+        .findById(tournamentId)
+        .exec();
+      return this.hydrateTournamentEntity(refreshed!);
+    }
+
     const targetCount = Math.max(
       2,
       desiredPlayerCount || tournament.maxPlayers || 4,
@@ -608,6 +721,84 @@ export class TournamentService {
         existing.isActive = true;
         await existing.save();
       }
+    }
+
+    if (tournament.competitionType === 'TEAM') {
+      const teamSize = tournament.minTeamSize || 2;
+      const targetTeamCount = Math.max(
+        2,
+        Math.floor(targetCount / teamSize) || 2,
+      );
+      const neededPlayers = targetTeamCount * teamSize;
+
+      let availableUsers = await this.userModel
+        .find({ isDeleted: false, isActive: true })
+        .exec();
+
+      let extraIdx = 1;
+      while (availableUsers.length < neededPlayers) {
+        const extraEmail = `seed.team.player.${Date.now()}.${extraIdx}@ttportal.com`;
+        const newPlayer = await this.userModel.create({
+          firstName: `Player`,
+          lastName: `Pair${extraIdx}`,
+          fullName: `Player Pair${extraIdx}`,
+          email: extraEmail,
+          password: passwordHash,
+          role: UserRole.PLAYER,
+          roles: [UserRole.PLAYER],
+          isActive: true,
+          isDeleted: false,
+        });
+        availableUsers.push(newPlayer);
+        extraIdx++;
+      }
+
+      const teamNames = [
+        'Dragon Pair',
+        'Thunder Smashers',
+        'Spin Masters',
+        'Vanguard Duo',
+        'Ace Strikers',
+        'Apex Force',
+      ];
+
+      tournament.teams = [];
+      tournament.participants = [];
+
+      for (let i = 0; i < targetTeamCount; i++) {
+        const slice = availableUsers.slice(i * teamSize, (i + 1) * teamSize);
+        const captain = slice[0];
+        const teamMembers = slice.map((u, idx) => ({
+          userId: u._id,
+          fullName: u.fullName || `${u.firstName} ${u.lastName}`,
+          email: u.email,
+          roleInTeam: idx === 0 ? 'CAPTAIN' : 'PLAYER',
+        }));
+
+        tournament.teams.push({
+          _id: new Types.ObjectId(),
+          name: teamNames[i % teamNames.length] || `Team ${i + 1}`,
+          captainId: captain._id,
+          captainName:
+            captain.fullName || `${captain.firstName} ${captain.lastName}`,
+          members: teamMembers as any,
+        });
+
+        for (const m of slice) {
+          tournament.participants.push(m._id);
+        }
+      }
+
+      tournament.isRegistrationClosed = true;
+      await tournament.save();
+
+      if (tournament.matches.length === 0) {
+        await this.generateTeamWave1Matches(tournament);
+      }
+
+      tournament.status = TournamentStatus.ACTIVE;
+      await tournament.save();
+      return this.hydrateTournamentEntity(tournament);
     }
 
     // Fetch all active non-deleted users
@@ -914,10 +1105,8 @@ export class TournamentService {
     }
 
     const numTeams = teamPool.length;
-    const nextPowerOfTwo = Math.pow(2, Math.ceil(Math.log2(numTeams)));
-    const round1MatchCount = nextPowerOfTwo / 2;
-    const numByes = nextPowerOfTwo - numTeams;
-    const numRealMatches = round1MatchCount - numByes;
+    const round1MatchCount = Math.ceil(numTeams / 2);
+    const numRealMatches = Math.floor(numTeams / 2);
     const round1Name = this.getRoundLabel(round1MatchCount, 1);
 
     let cursor = 0;
@@ -1013,10 +1202,8 @@ export class TournamentService {
     }
 
     const numPlayers = playerPool.length;
-    const nextPowerOfTwo = Math.pow(2, Math.ceil(Math.log2(numPlayers)));
-    const round1MatchCount = nextPowerOfTwo / 2;
-    const numByes = nextPowerOfTwo - numPlayers;
-    const numRealMatches = round1MatchCount - numByes;
+    const round1MatchCount = Math.ceil(numPlayers / 2);
+    const numRealMatches = Math.floor(numPlayers / 2);
     const round1Name = this.getRoundLabel(round1MatchCount, 1);
 
     let cursor = 0;
@@ -1041,6 +1228,7 @@ export class TournamentService {
           winnerId: null,
           winnerName: null,
           status: MatchStatus.SCHEDULED,
+          wave: 1,
           isFinal: round1MatchCount === 1,
           isBye: false,
           scheduledAt: new Date(),
@@ -1064,6 +1252,7 @@ export class TournamentService {
           winnerId: pA.id,
           winnerName: pA.name,
           status: MatchStatus.COMPLETED,
+          wave: 1,
           isFinal: false,
           isBye: true,
           scheduledAt: new Date(),
@@ -1075,6 +1264,7 @@ export class TournamentService {
 
     tournament.matches = createdMatches.map((m) => m._id);
     tournament.status = TournamentStatus.ACTIVE;
+    tournament.currentWave = 1;
     await tournament.save();
 
     // Advance any BYE winners immediately into Round 2
@@ -1443,6 +1633,47 @@ export class TournamentService {
   }
 
   /**
+   * Find a single match by its unique ObjectId
+   */
+  async findMatchById(id: string): Promise<MatchEntity | null> {
+    if (!Types.ObjectId.isValid(id)) return null;
+    const match = await this.matchModel.findById(id).exec();
+    if (!match) return null;
+    return this.mapMatchToEntity(match);
+  }
+
+  /**
+   * Transitions a match to LIVE and configures its format (e.g. BEST_OF_3, BEST_OF_5, BEST_OF_1)
+   */
+  async startMatch(matchId: string, format?: string): Promise<MatchEntity> {
+    if (!Types.ObjectId.isValid(matchId)) {
+      throw new BadRequestException('Invalid match ID');
+    }
+    const match = await this.matchModel.findById(matchId).exec();
+    if (!match) {
+      throw new NotFoundException('Match not found');
+    }
+    if (match.status === MatchStatus.COMPLETED) {
+      throw new BadRequestException('Cannot restart a completed match');
+    }
+    match.status = MatchStatus.LIVE;
+    if (format) {
+      let details: Record<string, any> = {};
+      try {
+        if (match.scoreDetails) {
+          details = JSON.parse(match.scoreDetails);
+        }
+      } catch {
+        details = {};
+      }
+      details.format = format;
+      match.scoreDetails = JSON.stringify(details);
+    }
+    await match.save();
+    return this.mapMatchToEntity(match);
+  }
+
+  /**
    * Global matches query accessible to all users across the platform
    */
   async findAllMatches(filter?: MatchesFilterInput): Promise<MatchEntity[]> {
@@ -1626,6 +1857,47 @@ export class TournamentService {
       })),
     }));
 
+    let childTournaments: TournamentEntity[] | undefined = undefined;
+    if (doc.childTournamentIds && doc.childTournamentIds.length > 0) {
+      const childDocs = await this.tournamentModel
+        .find({ _id: { $in: doc.childTournamentIds }, isDeleted: false })
+        .exec();
+      childTournaments = await Promise.all(
+        childDocs.map((c) => this.hydrateTournamentEntity(c)),
+      );
+    }
+
+    let effectiveStatus = doc.status;
+    let effectiveWinnerName = doc.winnerName || null;
+
+    if (
+      doc.hasBothDivisions &&
+      childTournaments &&
+      childTournaments.length > 0
+    ) {
+      const singles = childTournaments.find((c) => c.division === 'SINGLES');
+      const doubles = childTournaments.find((c) => c.division === 'DOUBLES');
+      const parts: string[] = [];
+      if (singles?.winnerName) parts.push(`Singles: ${singles.winnerName}`);
+      if (doubles?.winnerName) parts.push(`Doubles: ${doubles.winnerName}`);
+      if (parts.length > 0) {
+        effectiveWinnerName = parts.join(' | ');
+      }
+      const allCompleted = childTournaments.every(
+        (c) => c.status === TournamentStatus.COMPLETED,
+      );
+      const anyActive = childTournaments.some(
+        (c) =>
+          c.status === TournamentStatus.ACTIVE ||
+          c.status === TournamentStatus.COMPLETED,
+      );
+      if (allCompleted) {
+        effectiveStatus = TournamentStatus.COMPLETED;
+      } else if (anyActive && effectiveStatus === TournamentStatus.DRAFT) {
+        effectiveStatus = TournamentStatus.ACTIVE;
+      }
+    }
+
     return {
       id: doc._id.toString(),
       name: doc.name,
@@ -1639,6 +1911,15 @@ export class TournamentService {
       teams,
       isRegistrationClosed: Boolean(doc.isRegistrationClosed),
       currentWave: doc.currentWave || 1,
+      hasBothDivisions: Boolean(doc.hasBothDivisions),
+      division: doc.division || null,
+      parentTournamentId: doc.parentTournamentId
+        ? doc.parentTournamentId.toString()
+        : null,
+      childTournamentIds: (doc.childTournamentIds || []).map((cid) =>
+        cid.toString(),
+      ),
+      childTournaments,
       type: doc.type,
       format: doc.format,
       visibility: doc.visibility,
@@ -1653,9 +1934,9 @@ export class TournamentService {
       participantDetails,
       matches: matches.map((m) => m._id.toString()),
       matchDetails,
-      status: doc.status,
+      status: effectiveStatus,
       winnerId: doc.winnerId ? doc.winnerId.toString() : null,
-      winnerName: doc.winnerName || null,
+      winnerName: effectiveWinnerName,
       createdAt: (doc as any).createdAt || new Date(),
       updatedAt: (doc as any).updatedAt || new Date(),
       isDeleted: doc.isDeleted,

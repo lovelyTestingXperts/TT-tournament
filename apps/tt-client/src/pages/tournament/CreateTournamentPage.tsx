@@ -22,6 +22,7 @@ const tournamentFormSchema = z
     category: z.string().min(1, 'Category is required'),
     sport: z.string().optional(),
     competitionType: z.enum(['INDIVIDUAL', 'TEAM']),
+    hasBothDivisions: z.boolean().optional(),
     minTeamSize: z.coerce.number().min(1).optional(),
     maxTeamSize: z.coerce.number().min(1).optional(),
     scoringFormat: z.string().optional(),
@@ -70,6 +71,7 @@ export type TournamentFormValues = {
   category: string;
   sport?: string;
   competitionType: 'INDIVIDUAL' | 'TEAM';
+  hasBothDivisions?: boolean;
   minTeamSize?: number;
   maxTeamSize?: number;
   scoringFormat?: string;
@@ -87,6 +89,7 @@ export default function CreateTournamentPage() {
   const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedSport, setSelectedSport] = useState<SportType>(SportType.TABLE_TENNIS);
+  const [divisionMode, setDivisionMode] = useState<'INDIVIDUAL' | 'TEAM' | 'BOTH'>('INDIVIDUAL');
   const [rulesViewTab, setRulesViewTab] = useState<'edit' | 'preview'>('edit');
 
   const [createTournament, { loading }] = useCreateTournament();
@@ -139,6 +142,12 @@ export default function CreateTournamentPage() {
       setValue('maxTeamSize', preset.maxTeamSize);
     }
 
+    if (preset.defaultCompetitionType === 'TEAM') {
+      setDivisionMode('TEAM');
+    } else {
+      setDivisionMode('INDIVIDUAL');
+    }
+
     const defaultRulesText = preset.defaultRules.map((r, i) => `${i + 1}. ${r}`).join('\n');
     setValue('description', defaultRulesText);
   };
@@ -161,6 +170,7 @@ export default function CreateTournamentPage() {
             category: values.category,
             sport: values.sport,
             competitionType: values.competitionType,
+            hasBothDivisions: divisionMode === 'BOTH',
             minTeamSize: values.minTeamSize,
             maxTeamSize: values.maxTeamSize,
             scoringFormat: values.scoringFormat,
@@ -227,7 +237,7 @@ export default function CreateTournamentPage() {
                 <button
                   key={preset.id}
                   type="button"
-                  data-testid={`sport-select-${preset.id.toLowerCase()}-btn`}
+                  data-testid={`sport-card-${preset.id.toLowerCase()}`}
                   onClick={() => handleSelectSport(preset.id)}
                   className={`flex flex-col items-center justify-center p-3.5 rounded-card border transition-all text-center ${
                     isSelected
@@ -275,21 +285,60 @@ export default function CreateTournamentPage() {
             />
           </div>
 
-          {/* Competition Type (Individual vs Team) */}
+          {/* Competition Mode & Divisions */}
           <div>
             <label htmlFor="tournament-competition-type-select" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
-              Competition Mode
+              Competition Mode & Divisions
             </label>
             <select
               id="tournament-competition-type-select"
               data-testid="tournament-competition-type-select"
-              {...register('competitionType')}
+              value={divisionMode}
+              onChange={(e) => {
+                const val = e.target.value as 'INDIVIDUAL' | 'TEAM' | 'BOTH';
+                setDivisionMode(val);
+                if (val === 'BOTH') {
+                  setValue('competitionType', 'INDIVIDUAL');
+                  setValue('hasBothDivisions', true);
+                  setValue('minTeamSize', 2);
+                  setValue('maxTeamSize', 2);
+                } else if (val === 'TEAM') {
+                  setValue('competitionType', 'TEAM');
+                  setValue('hasBothDivisions', false);
+                  const preset = SPORTS_PRESETS[selectedSport];
+                  setValue('minTeamSize', preset.minTeamSize || 2);
+                  setValue('maxTeamSize', preset.maxTeamSize || 2);
+                } else {
+                  setValue('competitionType', 'INDIVIDUAL');
+                  setValue('hasBothDivisions', false);
+                  setValue('minTeamSize', 1);
+                  setValue('maxTeamSize', 1);
+                }
+              }}
               className="h-10 w-full rounded-button border border-white/[0.09] bg-surface-850/90 px-3.5 text-sm font-medium text-slate-200 outline-none hover:border-white/[0.18] focus:border-primary"
             >
               <option value="INDIVIDUAL">Individual (Singles)</option>
               <option value="TEAM">Team (Squads / Doubles)</option>
+              {(selectedSport === SportType.TABLE_TENNIS ||
+                selectedSport === SportType.BADMINTON ||
+                selectedSport === SportType.CARROM) && (
+                <option value="BOTH">Dual Division: Singles & Doubles (2 Sub-Tournaments)</option>
+              )}
             </select>
           </div>
+
+          {/* Dual Division Explanatory Banner */}
+          {divisionMode === 'BOTH' && (
+            <div data-testid="dual-division-info" className="md:col-span-2 p-4 rounded-panel bg-primary/10 border border-primary/25 text-xs text-primary-light flex items-start gap-3">
+              <span className="text-xl">🏓👥</span>
+              <div>
+                <p className="font-semibold text-white text-sm">Championship Dual Format (Singles & Doubles)</p>
+                <p className="text-slate-300 mt-1 leading-relaxed">
+                  This creates a master Championship managing <strong>2 independent sub-tournaments</strong>: Singles (Individual) and Doubles (Pairs of 2). Brackets, player registrations, and matches are tracked separately, crowning both a <strong>Singles Champion</strong> and <strong>Doubles Champions</strong> under this single tournament!
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Team Size constraints (Visible when Team competition selected) */}
           {currentCompetitionType === 'TEAM' && (

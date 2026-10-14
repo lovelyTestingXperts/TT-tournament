@@ -8,6 +8,10 @@ export const CREATE_TOURNAMENT = gql`
       name
       description
       category
+      sport
+      competitionType
+      hasBothDivisions
+      division
       type
       format
       visibility
@@ -29,6 +33,10 @@ export const UPDATE_TOURNAMENT = gql`
       name
       description
       category
+      sport
+      competitionType
+      hasBothDivisions
+      division
       type
       format
       visibility
@@ -242,3 +250,13 @@ export const REGISTER_TEAM = gql`
     }
   }
 `;
+
+export const START_MATCH = gql`
+  ${MATCH_FIELDS_FRAGMENT}
+  mutation StartMatch($matchId: String!, $format: String) {
+    startMatch(matchId: $matchId, format: $format) {
+      ...MatchFields
+    }
+  }
+`;
+

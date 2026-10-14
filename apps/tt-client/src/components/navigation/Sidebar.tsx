@@ -1,6 +1,7 @@
 import {
   Calendar,
   ChevronLeft,
+  Home,
   LayoutDashboard,
   Trophy,
   Users,
@@ -9,11 +10,17 @@ import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 
 import AppLogo from './AppLogo';
+import { useServerStatusStore } from '@/store/serverStatusStore';
 
 const menuItems = [
   {
-    label: 'Dashboard',
+    label: 'Home',
     path: '/',
+    icon: <Home size={19} />,
+  },
+  {
+    label: 'Dashboard',
+    path: '/dashboard',
     icon: <LayoutDashboard size={19} />,
   },
   {
@@ -35,6 +42,7 @@ const menuItems = [
 
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const isServerDown = useServerStatusStore((state) => state.isServerDown);
 
   return (
     <aside
@@ -153,9 +161,17 @@ export default function Sidebar() {
       {/* Footer subtle brand indicator */}
       {!collapsed && (
         <div className="border-t border-white/[0.06] p-4 text-xs text-slate-500">
-          <div className="flex items-center gap-2">
-            <span className="size-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-            <span>Server Online</span>
+          <div data-testid="server-status-indicator" className="flex items-center gap-2">
+            <span
+              className={`size-2 rounded-full transition-all ${
+                isServerDown
+                  ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.7)] animate-pulse'
+                  : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]'
+              }`}
+            />
+            <span className={isServerDown ? 'text-rose-400 font-semibold' : 'text-slate-400'}>
+              {isServerDown ? 'Server Offline' : 'Server Online'}
+            </span>
           </div>
         </div>
       )}

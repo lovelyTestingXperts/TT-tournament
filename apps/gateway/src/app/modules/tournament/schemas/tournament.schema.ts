@@ -121,6 +121,18 @@ export class Tournament {
   @Prop({ type: Number, default: 1 })
   currentWave!: number;
 
+  @Prop({ type: Boolean, default: false })
+  hasBothDivisions!: boolean;
+
+  @Prop({ type: String, default: null })
+  division?: string | null;
+
+  @Prop({ type: Types.ObjectId, ref: 'Tournament', default: null })
+  parentTournamentId?: Types.ObjectId | null;
+
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Tournament' }], default: [] })
+  childTournamentIds!: Types.ObjectId[];
+
   @Prop({ default: false })
   isDeleted!: boolean;
 
@@ -137,4 +149,7 @@ TournamentSchema.index({ type: 1 });
 TournamentSchema.index({ visibility: 1 });
 TournamentSchema.index({ createdAt: 1 });
 TournamentSchema.index({ startDate: 1 });
+TournamentSchema.index({ parentTournamentId: 1 });
+TournamentSchema.index({ hasBothDivisions: 1 });
 TournamentSchema.index({ isDeleted: 1 });
+

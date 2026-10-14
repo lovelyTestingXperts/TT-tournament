@@ -9,6 +9,7 @@ type TournamentItem = {
   participants?: string[];
   startDate: string | Date;
   status: string;
+  hasBothDivisions?: boolean;
 };
 
 type Props = {
@@ -52,6 +53,7 @@ export default function TournamentGrid({ tournaments, loading }: Props) {
           participantsCount={tournament.participants?.length || 0}
           startDate={tournament.startDate}
           status={tournament.status}
+          hasBothDivisions={tournament.hasBothDivisions}
         />
       ))}
     </div>

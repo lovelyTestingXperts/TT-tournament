@@ -4,7 +4,8 @@
   "license": "MIT",
   "scripts": {
     "update:test-sheet": "node tools/generate-test-sheet.js",
-    "seed:players": "node tools/seed-players.js"
+    "seed:players": "node tools/seed-players.js",
+    "test:cleanup": "node tools/cleanup-test-data.js"
   },
   "private": true,
   "devDependencies": {

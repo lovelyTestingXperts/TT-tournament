@@ -18,6 +18,16 @@ const MODULE_MAPPING = {
   'match-crud.spec.ts': { name: 'Match Management', prefix: 'MTCH' },
   'match-bracket.spec.ts': { name: 'Bracket Management', prefix: 'BRKT' },
   'multi-sport.spec.ts': { name: 'Multi-Sport Tournaments', prefix: 'SPRT' },
+  'table-tennis.spec.ts': { name: 'Table Tennis Matches', prefix: 'TT' },
+  'cricket.spec.ts': { name: 'Cricket Matches', prefix: 'CRKT' },
+  'carrom.spec.ts': { name: 'Carrom Matches', prefix: 'CRRM' },
+  'chess.spec.ts': { name: 'Chess Matches', prefix: 'CHSS' },
+  'badminton.spec.ts': { name: 'Badminton Matches', prefix: 'BDMT' },
+  'dual-division.spec.ts': { name: 'Dual Division Matches', prefix: 'DUAL' },
+  'home.spec.ts': { name: 'Home Landing Portal', prefix: 'HOME' },
+  'notifications.spec.ts': { name: 'Notification Center', prefix: 'NOTIF' },
+  'server-health.spec.ts': { name: 'Server Health & Downtime', prefix: 'SRV' },
+  'match-arena.spec.ts': { name: 'Match Arena & Rounds', prefix: 'ARENA' },
 };
 
 function resolveModuleInfo(fileName) {

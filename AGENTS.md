@@ -73,4 +73,11 @@ To maintain complete visibility over what scenarios our automated tests cover, a
 - **Automation / Script Tool**:
   - Simply run `npm run update:test-sheet`. The tool uses TypeScript AST analysis to automatically extract tests, grouped `test.step` actions, and assertions from `tests/**/*.spec.ts` and syncs the Excel catalog with zero manual entry.
 
+## 5. Test Data Teardown & UI Isolation Protocol (MANDATORY)
+Tests must never leave residual artifacts (test users, tournaments, matches) in the database that clutter or alter the live application UI for human users.
+- **Automated Teardown**: Playwright config is integrated with `tests/global-teardown.ts`, which automatically executes `cleanTestData()` after test suites complete.
+- **Fixture-Level Teardown**: When adding new end-to-end scenarios creating persistent data, utilize `cleanupTestData` fixture or `test.afterEach` to ensure changes are rolled back.
+- **Test Email Naming Convention**: Dynamic test users must use emails matching `@example.com` or `@ttsports.com` (or generated via `DataFactory`). Never use `@sports.org` (reserved for permanent seeded players) or `lovely.kumar@testingxperts.com`.
+- **Standalone Purge**: At any time, running `npm run test:cleanup` purges all test-created entities while preserving the 30 official seeded players and admin user.
+
 

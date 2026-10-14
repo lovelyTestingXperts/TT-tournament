@@ -41,6 +41,10 @@ export const GET_TOURNAMENTS = gql`
         category
         sport
         competitionType
+        hasBothDivisions
+        division
+        parentTournamentId
+        childTournamentIds
         scoringFormat
         minTeamSize
         maxTeamSize
@@ -105,6 +109,56 @@ export const GET_TOURNAMENT = gql`
       category
       sport
       competitionType
+      hasBothDivisions
+      division
+      parentTournamentId
+      childTournamentIds
+      childTournaments {
+        id
+        name
+        division
+        competitionType
+        sport
+        scoringFormat
+        minTeamSize
+        maxTeamSize
+        isRegistrationClosed
+        currentWave
+        type
+        format
+        visibility
+        status
+        winnerId
+        winnerName
+        maxPlayers
+        prizePool
+        startDate
+        endDate
+        registrationDeadline
+        participants
+        participantDetails {
+          id
+          fullName
+          email
+          role
+        }
+        teams {
+          id
+          name
+          captainId
+          captainName
+          members {
+            userId
+            fullName
+            email
+            roleInTeam
+          }
+        }
+        matches
+        matchDetails {
+          ...MatchFields
+        }
+      }
       scoringFormat
       minTeamSize
       maxTeamSize
@@ -160,3 +214,13 @@ export const GET_MATCHES = gql`
     }
   }
 `;
+
+export const GET_MATCH_BY_ID = gql`
+  ${MATCH_FIELDS_FRAGMENT}
+  query GetMatchById($id: String!) {
+    match(id: $id) {
+      ...MatchFields
+    }
+  }
+`;
+

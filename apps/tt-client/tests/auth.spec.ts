@@ -1,5 +1,4 @@
 import { test, expect } from './fixtures';
-import { AuthAssertions } from './assertions';
 import { DataFactory, UserRegistrationData } from './data';
 
 test.describe('Authentication: Sign Up & Login Flows', () => {
@@ -10,7 +9,11 @@ test.describe('Authentication: Sign Up & Login Flows', () => {
       });
 
       await test.step('Verify login form controls are visible', async () => {
-        await AuthAssertions.assertLoginPageVisible(pm.login);
+        await expect(pm.login.pageContainer).toBeVisible();
+        await expect(pm.login.form).toBeVisible();
+        await expect(pm.login.emailInput).toBeVisible();
+        await expect(pm.login.passwordInput).toBeVisible();
+        await expect(pm.login.submitButton).toBeVisible();
       });
     });
 
@@ -20,7 +23,14 @@ test.describe('Authentication: Sign Up & Login Flows', () => {
       });
 
       await test.step('Verify register form controls are visible', async () => {
-        await AuthAssertions.assertRegisterPageVisible(pm.register);
+        await expect(pm.register.pageContainer).toBeVisible();
+        await expect(pm.register.form).toBeVisible();
+        await expect(pm.register.firstNameInput).toBeVisible();
+        await expect(pm.register.lastNameInput).toBeVisible();
+        await expect(pm.register.emailInput).toBeVisible();
+        await expect(pm.register.passwordInput).toBeVisible();
+        await expect(pm.register.submitButton).toBeVisible();
+        await expect(pm.register.statusBadge).toHaveText('Player');
       });
     });
 
@@ -28,12 +38,14 @@ test.describe('Authentication: Sign Up & Login Flows', () => {
       await test.step('Navigate to login and switch to register page', async () => {
         await pm.login.goto();
         await pm.login.registerLink.click();
-        await AuthAssertions.assertRegisterPageVisible(pm.register);
+        await expect(pm.register.pageContainer).toBeVisible();
+        await expect(pm.register.form).toBeVisible();
       });
 
       await test.step('Switch back to login page from register page', async () => {
         await pm.register.loginLink.click();
-        await AuthAssertions.assertLoginPageVisible(pm.login);
+        await expect(pm.login.pageContainer).toBeVisible();
+        await expect(pm.login.form).toBeVisible();
       });
     });
   });
@@ -52,12 +64,14 @@ test.describe('Authentication: Sign Up & Login Flows', () => {
       });
 
       await test.step('Verify success message appears on register page', async () => {
-        await AuthAssertions.assertSuccessMessageVisible(pm.register, /Registration successful/i);
+        await expect(pm.register.successMessage).toBeVisible();
+        await expect(pm.register.successMessage).toContainText(/Registration successful/i);
       });
 
       await test.step('Navigate to login page', async () => {
         await pm.login.goto();
-        await AuthAssertions.assertLoginPageVisible(pm.login);
+        await expect(pm.login.pageContainer).toBeVisible();
+        await expect(pm.login.form).toBeVisible();
       });
 
       await test.step('Submit login credentials and authenticate', async () => {
@@ -80,7 +94,9 @@ test.describe('Authentication: Sign Up & Login Flows', () => {
       });
 
       await test.step('Verify email field validation error is displayed', async () => {
-        await AuthAssertions.assertFieldError(page, 'email', /Invalid email address/i);
+        const errorLocator = page.getByTestId('email-input-error');
+        await expect(errorLocator).toBeVisible();
+        await expect(errorLocator).toContainText(/Invalid email address/i);
       });
     });
 
@@ -92,7 +108,9 @@ test.describe('Authentication: Sign Up & Login Flows', () => {
       });
 
       await test.step('Verify password length validation error is displayed', async () => {
-        await AuthAssertions.assertFieldError(page, 'password', /at least 6 characters/i);
+        const errorLocator = page.getByTestId('password-input-error');
+        await expect(errorLocator).toBeVisible();
+        await expect(errorLocator).toContainText(/at least 6 characters/i);
       });
     });
 
@@ -104,7 +122,9 @@ test.describe('Authentication: Sign Up & Login Flows', () => {
       });
 
       await test.step('Verify password mismatch error is displayed', async () => {
-        await AuthAssertions.assertFieldError(page, 'confirmPassword', /Passwords do not match/i);
+        const errorLocator = page.getByTestId('confirmPassword-input-error');
+        await expect(errorLocator).toBeVisible();
+        await expect(errorLocator).toContainText(/Passwords do not match/i);
       });
     });
 
@@ -116,8 +136,13 @@ test.describe('Authentication: Sign Up & Login Flows', () => {
       });
 
       await test.step('Verify name length and requirement errors are displayed', async () => {
-        await AuthAssertions.assertFieldError(page, 'firstName', /at least 2 characters/i);
-        await AuthAssertions.assertFieldError(page, 'lastName', /Last name is required/i);
+        const firstError = page.getByTestId('firstName-input-error');
+        await expect(firstError).toBeVisible();
+        await expect(firstError).toContainText(/at least 2 characters/i);
+
+        const lastError = page.getByTestId('lastName-input-error');
+        await expect(lastError).toBeVisible();
+        await expect(lastError).toContainText(/Last name is required/i);
       });
     });
 
@@ -128,7 +153,8 @@ test.describe('Authentication: Sign Up & Login Flows', () => {
       });
 
       await test.step('Verify invalid credentials error alert is displayed', async () => {
-        await AuthAssertions.assertErrorMessage(pm.login, /Invalid email or password/i);
+        await expect(pm.login.errorMessage).toBeVisible();
+        await expect(pm.login.errorMessage).toContainText(/Invalid email or password/i);
       });
     });
 
@@ -139,7 +165,9 @@ test.describe('Authentication: Sign Up & Login Flows', () => {
       });
 
       await test.step('Verify password length validation error is displayed on login form', async () => {
-        await AuthAssertions.assertFieldError(page, 'password', /Password too short/i);
+        const errorLocator = page.getByTestId('password-input-error');
+        await expect(errorLocator).toBeVisible();
+        await expect(errorLocator).toContainText(/Password too short/i);
       });
     });
   });
