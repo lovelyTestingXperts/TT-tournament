@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import moment from 'moment-timezone';
 import {
   Bell,
   Check,
@@ -13,6 +14,12 @@ import {
   X,
   Sparkles,
 } from 'lucide-react';
+import {
+  useNotifications,
+  useMarkNotificationAsRead,
+  useMarkAllNotificationsAsRead,
+  useClearAllNotifications,
+} from '@/features/tournament/graphql/hooks';
 
 export type NotificationItem = {
   id: string;
@@ -110,8 +117,34 @@ type Props = {
 export default function NotificationDropdown({ isOpen, onClose }: Props) {
   const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { data: remoteData } = useNotifications();
+  const [markReadMutation] = useMarkNotificationAsRead();
+  const [markAllReadMutation] = useMarkAllNotificationsAsRead();
+  const [clearAllMutation] = useClearAllNotifications();
+
   const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
   const [activeTab, setActiveTab] = useState<'all' | 'match' | 'tournament'>('all');
+
+  // Sync with live backend notifications when received
+  useEffect(() => {
+    if (remoteData?.notifications && remoteData.notifications.length > 0) {
+      const mapped: NotificationItem[] = remoteData.notifications.map((n: any) => ({
+        id: n.id,
+        title: n.title,
+        message: n.message,
+        category: (n.category || 'system') as 'match' | 'tournament' | 'system',
+        sport: n.sport,
+        link: n.link || '/matches',
+        badge: n.badge || 'UPDATE',
+        badgeColor: n.badgeColor,
+        read: Boolean(n.read),
+        timestamp: moment(n.createdAt).fromNow(),
+      }));
+      const existingIds = new Set(mapped.map((n) => n.id));
+      const remainingInitial = INITIAL_NOTIFICATIONS.filter((n) => !existingIds.has(n.id));
+      setNotifications([...mapped, ...remainingInitial]);
+    }
+  }, [remoteData]);
 
   // Close on outside click
   useEffect(() => {
@@ -141,25 +174,44 @@ export default function NotificationDropdown({ isOpen, onClose }: Props) {
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const markAllAsRead = () => {
+  const markAllAsRead = async () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    try {
+      await markAllReadMutation();
+    } catch (e) {
+      // Ignored for local/offline fallback
+    }
   };
 
-  const clearAll = () => {
+  const clearAll = async () => {
     setNotifications([]);
+    try {
+      await clearAllMutation();
+    } catch (e) {
+      // Ignored for local/offline fallback
+    }
   };
 
-  const toggleRead = (id: string) => {
+  const toggleRead = async (id: string) => {
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n))
     );
+    try {
+      await markReadMutation({ variables: { id } });
+    } catch (e) {
+      // Ignored for local/offline fallback
+    }
   };
 
-  const handleNotificationClick = (item: NotificationItem) => {
-    // Mark as read
+  const handleNotificationClick = async (item: NotificationItem) => {
     setNotifications((prev) =>
       prev.map((n) => (n.id === item.id ? { ...n, read: true } : n))
     );
+    try {
+      await markReadMutation({ variables: { id: item.id } });
+    } catch (e) {
+      // Ignored for local/offline fallback
+    }
     if (item.link) {
       onClose();
       navigate(item.link);

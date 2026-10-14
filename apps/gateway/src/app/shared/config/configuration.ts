@@ -6,4 +6,6 @@ export default () => ({
   jwtAccessSecret: process.env.JWT_ACCESS_SECRET,
 
   jwtRefreshSecret: process.env.JWT_REFRESH_SECRET,
+
+  notificationRetentionDays: parseInt(process.env.NOTIFICATION_RETENTION_DAYS ?? '10', 10),
 });

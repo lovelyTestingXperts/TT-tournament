@@ -10,7 +10,9 @@ import {
   Shuffle,
   Award,
   Play,
+  GitBranch,
 } from 'lucide-react';
+import TournamentTreeView from '@/features/match/components/TournamentTreeView';
 
 export type MatchDetail = {
   id: string;
@@ -88,6 +90,8 @@ export default function TournamentMatchList({
   const [customPlayerA, setCustomPlayerA] = useState('');
   const [customPlayerB, setCustomPlayerB] = useState('');
   const [localError, setLocalError] = useState<string | null>(null);
+  const [matchViewMode, setMatchViewMode] = useState<'bracket' | 'tree'>('bracket');
+  const [selectedRoundFilter, setSelectedRoundFilter] = useState<'ALL' | number>('ALL');
 
   const handleScoreChange = (matchId: string, side: 'scoreA' | 'scoreB', value: string) => {
     setLocalError(null);
@@ -291,6 +295,36 @@ export default function TournamentMatchList({
             </button>
           )}
 
+          {matchDetails.length > 0 && (
+            <div className="flex rounded-button border border-white/10 bg-slate-900/90 p-0.5">
+              <button
+                type="button"
+                data-testid="toggle-bracket-list-btn"
+                onClick={() => setMatchViewMode('bracket')}
+                className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all ${
+                  matchViewMode === 'bracket'
+                    ? 'bg-primary text-white shadow-glow'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                List
+              </button>
+              <button
+                type="button"
+                data-testid="toggle-bracket-tree-btn"
+                onClick={() => setMatchViewMode('tree')}
+                className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg transition-all ${
+                  matchViewMode === 'tree'
+                    ? 'bg-primary text-white shadow-glow'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <GitBranch className="size-3" />
+                <span>Tree</span>
+              </button>
+            </div>
+          )}
+
           <span className="inline-flex items-center gap-1.5 rounded-badge border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
             <Swords className="size-3.5" />
             <span>{matchDetails.length} Matches</span>
@@ -377,8 +411,13 @@ export default function TournamentMatchList({
         </form>
       )}
 
-      {/* Matches List or Empty State */}
-      {matchDetails.length === 0 ? (
+      {/* Matches List, Tree View, or Empty State */}
+      {matchViewMode === 'tree' && matchDetails.length > 0 ? (
+        <TournamentTreeView
+          matches={matchDetails}
+          tournamentWinnerName={winnerName}
+        />
+      ) : matchDetails.length === 0 ? (
         <div
           data-testid="empty-matches-state"
           className="flex flex-col items-center justify-center rounded-panel border border-dashed border-white/10 p-10 text-center"
@@ -390,22 +429,63 @@ export default function TournamentMatchList({
           </p>
         </div>
       ) : (
-        <div className="space-y-6">
-          {sortedRounds.map(([roundNum, roundMatches]) => {
-            const roundTitle = roundMatches[0]?.roundName || `Round ${roundNum}`;
-            return (
-              <div key={roundNum} data-testid={`bracket-round-${roundNum}`} className="space-y-3">
-                <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
-                    <Trophy className="size-3.5" />
-                    <span>
-                      Round {roundNum}: {roundTitle}
+        <div className="space-y-4">
+          {/* Round Filter Chips (When multiple rounds exist) */}
+          {sortedRounds.length > 1 && (
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none border-b border-white/5 pt-1">
+              <button
+                type="button"
+                data-testid="round-filter-all-btn"
+                onClick={() => setSelectedRoundFilter('ALL')}
+                className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold transition-all ${
+                  selectedRoundFilter === 'ALL'
+                    ? 'bg-primary text-white shadow-glow'
+                    : 'bg-slate-900 border border-white/10 text-slate-400 hover:text-white'
+                }`}
+              >
+                All Rounds ({matchDetails.length})
+              </button>
+              {sortedRounds.map(([rNum, rMatches]) => (
+                <button
+                  key={rNum}
+                  type="button"
+                  data-testid={`round-filter-r${rNum}-btn`}
+                  onClick={() => setSelectedRoundFilter(Number(rNum))}
+                  className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold transition-all ${
+                    selectedRoundFilter === Number(rNum)
+                      ? 'bg-primary text-white shadow-glow'
+                      : 'bg-slate-900 border border-white/10 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Round {rNum} ({rMatches.length})
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Dedicated Scrollable Bracket Container */}
+          <div
+            data-testid="bracket-scroll-container"
+            className="space-y-6 max-h-[640px] overflow-y-auto pr-2 scroll-smooth"
+          >
+            {(selectedRoundFilter === 'ALL'
+              ? sortedRounds
+              : sortedRounds.filter(([rNum]) => Number(rNum) === selectedRoundFilter)
+            ).map(([roundNum, roundMatches]) => {
+              const roundTitle = roundMatches[0]?.roundName || `Round ${roundNum}`;
+              return (
+                <div key={roundNum} data-testid={`bracket-round-${roundNum}`} className="space-y-3">
+                  <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-slate-950/95 py-2.5 backdrop-blur-md">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
+                      <Trophy className="size-3.5" />
+                      <span>
+                        Round {roundNum}: {roundTitle}
+                      </span>
+                    </h3>
+                    <span className="text-[11px] text-slate-400">
+                      {roundMatches.filter((m) => m.status === 'COMPLETED').length} / {roundMatches.length} Completed
                     </span>
-                  </h3>
-                  <span className="text-[11px] text-slate-400">
-                    {roundMatches.filter((m) => m.status === 'COMPLETED').length} / {roundMatches.length} Completed
-                  </span>
-                </div>
+                  </div>
 
                 <div className="grid gap-3">
                   {roundMatches.map((match) => {
@@ -629,6 +709,7 @@ export default function TournamentMatchList({
               </div>
             );
           })}
+          </div>
         </div>
       )}
     </div>

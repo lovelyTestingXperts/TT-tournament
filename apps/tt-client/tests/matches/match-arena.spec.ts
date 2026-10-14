@@ -144,11 +144,10 @@ test.describe('Match Arena - Round Configuration, Live Scoring & Team Registrati
       await page.getByTestId('team-name-input').fill('Royal Strikers');
 
       // Add a teammate from dropdown if available
-      const memberSelect = page.getByTestId('team-add-member-select');
+      const memberSelect = page.getByTestId('add-member-select');
       const count = await memberSelect.locator('option').count();
       if (count > 1) {
         await memberSelect.selectOption({ index: 1 });
-        await page.getByTestId('add-team-member-btn').click();
       }
 
       await page.getByTestId('submit-register-team-btn').click();
@@ -157,6 +156,57 @@ test.describe('Match Arena - Round Configuration, Live Scoring & Team Registrati
       await expect(page.getByTestId('tournament-action-error')).not.toBeVisible();
       await expect(pm.tournamentDetails.alertSuccess).toBeVisible();
       await expect(pm.tournamentDetails.alertSuccess).toContainText(/successfully registered/i);
+    });
+  });
+
+  test('ARENA-03: Match Module Redesign - Horizontal capsules, relevance grouping, and interactive Championship Tree View', async ({ page }) => {
+    await test.step('Navigate to /matches and verify redesigned Matches page header and controls', async () => {
+      await page.goto('/matches');
+      await page.waitForURL(/\/matches$/);
+      await expect(page.getByTestId('matches-page')).toBeVisible();
+      await expect(page.getByTestId('match-header')).toBeVisible();
+      await expect(page.getByTestId('match-search-input')).toBeVisible();
+      await expect(page.getByTestId('match-status-select')).toBeVisible();
+      await expect(page.getByTestId('view-mode-capsules-btn')).toBeVisible();
+      await expect(page.getByTestId('view-mode-tree-btn')).toBeVisible();
+    });
+
+    await test.step('Verify match capsules render in matches-grid or empty state handles cleanly', async () => {
+      await expect(page.getByTestId('loading-spinner')).not.toBeVisible({ timeout: 10000 });
+      const hasCards = (await page.getByTestId('match-card').count()) > 0;
+      if (hasCards) {
+        await expect(page.getByTestId('matches-grid')).toBeVisible();
+        await expect(page.getByTestId('match-card').first()).toBeVisible();
+      } else {
+        await expect(page.getByTestId('empty-state')).toBeVisible();
+      }
+    });
+
+    await test.step('Toggle Group by Tournament view', async () => {
+      const groupToggle = page.getByTestId('group-by-tournament-toggle');
+      if (await groupToggle.isVisible()) {
+        await groupToggle.click();
+        await expect(groupToggle).toHaveClass(/border-primary/);
+        // Toggle back to Smart Relevance Feed
+        await groupToggle.click();
+      }
+    });
+
+    await test.step('Switch to Championship Tree View and verify interactive bracket tree', async () => {
+      await page.getByTestId('view-mode-tree-btn').click();
+      await expect(page.getByTestId('view-mode-tree-btn')).toHaveClass(/bg-primary/);
+
+      // Verify either tree or empty state is rendered
+      const treeView = page.getByTestId('tournament-tree-view');
+      const emptyMatches = page.locator('text=No Bracket Matches Available');
+
+      const isTreeOrEmpty = (await treeView.isVisible()) || (await emptyMatches.isVisible());
+      expect(isTreeOrEmpty).toBeTruthy();
+    });
+
+    await test.step('Switch back to Capsule Feed view', async () => {
+      await page.getByTestId('view-mode-capsules-btn').click();
+      await expect(page.getByTestId('view-mode-capsules-btn')).toHaveClass(/bg-primary/);
     });
   });
 });

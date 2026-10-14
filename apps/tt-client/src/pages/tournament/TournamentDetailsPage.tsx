@@ -402,8 +402,8 @@ export default function TournamentDetailsPage() {
         )}
         {actionError && (
           <div data-testid="alert-error" className="flex items-center gap-3 rounded-panel border border-rose-500/30 bg-rose-500/10 p-4 text-rose-400 text-sm">
-            <AlertCircle className="size-5 shrink-0" />
-            <span>{actionError}</span>
+            <AlertCircle className="size-5 shrink-0 text-rose-400" />
+            <span data-testid="tournament-action-error">{actionError}</span>
           </div>
         )}
 
@@ -528,6 +528,7 @@ export default function TournamentDetailsPage() {
             <ParticipantList
               participants={activeTournament.participants}
               participantDetails={activeTournament.participantDetails}
+              teams={activeTournament.teams}
               maxPlayers={activeTournament.maxPlayers}
               onSeedPlayers={handleSeedPlayers}
               isSeeding={isProcessing}

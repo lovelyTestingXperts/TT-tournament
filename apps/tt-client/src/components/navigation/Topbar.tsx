@@ -2,12 +2,15 @@ import { useState } from 'react';
 import { Bell, Sparkles, LogOut, User as UserIcon, LogIn, UserPlus } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/features/auth/context/AuthContext';
+import { useUnreadNotificationCount } from '@/features/tournament/graphql/hooks';
 import NotificationDropdown from './NotificationDropdown';
 
 export default function Topbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const { data: countData } = useUnreadNotificationCount();
+  const unreadCount = countData?.unreadNotificationCount ?? 0;
 
   const handleLogout = () => {
     logout();

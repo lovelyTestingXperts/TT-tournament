@@ -4,10 +4,12 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcrypt';
+import { NotificationService } from '../notification/notification.service';
 
 import {
   Tournament,
@@ -56,6 +58,8 @@ export class TournamentService {
     private readonly matchModel: Model<MatchDocument>,
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
+    @Optional()
+    private readonly notificationService?: NotificationService,
   ) {}
 
   private getRoundLabel(matchCountInRound: number, roundNumber: number): string {
@@ -182,6 +186,18 @@ export class TournamentService {
           doublesTournament._id,
         ];
         await tournament.save();
+      }
+
+      if (this.notificationService) {
+        await this.notificationService.createNotification({
+          title: `🏆 New Tournament: ${tournament.name}`,
+          message: `${tournament.category || 'Multi-Sport'} tournament opened! ${tournament.maxPlayers || 8} participant slots available. Register now!`,
+          category: 'tournament',
+          sport: tournament.sport || 'Table Tennis',
+          link: `/tournaments/${tournament._id}`,
+          badge: 'NEW',
+          badgeColor: 'border-emerald-500/40 bg-emerald-500/20 text-emerald-300',
+        });
       }
 
       return this.hydrateTournamentEntity(tournament);
@@ -845,6 +861,18 @@ export class TournamentService {
       await this.generateBracketMatchesInternal(tournament);
     }
 
+    if (this.notificationService) {
+      await this.notificationService.createNotification({
+        title: `⚔️ Bracket Generated: ${tournament.name}`,
+        message: `${tournament.participants.length} players joined and Round 1 bracket matches are drawn!`,
+        category: 'match',
+        sport: tournament.sport || 'Table Tennis',
+        link: `/tournaments/${tournament._id}`,
+        badge: 'FIXTURE',
+        badgeColor: 'border-amber-500/40 bg-amber-500/20 text-amber-300',
+      });
+    }
+
     return this.hydrateTournamentEntity(tournament);
   }
 
@@ -1481,6 +1509,18 @@ export class TournamentService {
       tournament.winnerName = match.winnerName;
       tournament.status = TournamentStatus.COMPLETED;
       await tournament.save();
+
+      if (this.notificationService) {
+        await this.notificationService.createNotification({
+          title: `👑 Champion Crowned: ${match.winnerName}!`,
+          message: `${match.winnerName} won the Grand Final and is crowned official Champion of ${tournament.name}!`,
+          category: 'tournament',
+          sport: tournament.sport || 'Table Tennis',
+          link: `/tournaments/${tournament._id}`,
+          badge: 'WINNER',
+          badgeColor: 'border-yellow-500/40 bg-yellow-500/20 text-yellow-300',
+        });
+      }
     } else {
       // Advance winner into next round match
       await this.advanceWinnerToNextRound(
@@ -1488,6 +1528,18 @@ export class TournamentService {
         match,
         expectedInRound,
       );
+
+      if (this.notificationService) {
+        await this.notificationService.createNotification({
+          title: `⚔️ Match Result: ${match.roundName || 'Match'}`,
+          message: `${match.winnerName} advanced to next round in ${tournament.name}! Score: ${match.scoreA} - ${match.scoreB}.`,
+          category: 'match',
+          sport: tournament.sport || 'Table Tennis',
+          link: `/matches/${match._id}`,
+          badge: 'RESULT',
+          badgeColor: 'border-sky-500/40 bg-sky-500/20 text-sky-300',
+        });
+      }
     }
 
     return this.hydrateTournamentEntity(tournament);

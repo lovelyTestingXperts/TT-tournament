@@ -73,12 +73,12 @@ jobs:
       - name: Start Backend Gateway Service
         run: |
           node apps/gateway/dist/main.js &
-          npx wait-on http://localhost:4000/graphql --timeout 60000
+          npx wait-on tcp:127.0.0.1:4000 --timeout 60000
 
       - name: Start Frontend Preview Service
         run: |
           npx vite preview apps/tt-client --port 4200 --host &
-          npx wait-on http://localhost:4200 --timeout 60000
+          npx wait-on tcp:127.0.0.1:4200 --timeout 60000
 
       - name: Run Playwright E2E Test Suite
         run: npm exec playwright test -- --project=chromium

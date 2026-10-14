@@ -38,9 +38,9 @@ test.describe('Multi-Sport Tournaments, Team Registration & Wave Fixtures', () =
       await page.getByTestId('sport-card-cricket').click();
       await expect(page.getByTestId('tournament-category-input')).toHaveValue('Cricket');
       await expect(page.getByTestId('tournament-comp-type-team')).toBeChecked();
-      await expect(page.getByTestId('tournament-min-team-input')).toBeVisible();
-      await expect(page.getByTestId('tournament-min-team-input')).toHaveValue('2');
-      await expect(page.getByTestId('tournament-max-team-input')).toHaveValue('11');
+      await expect(page.getByTestId('tournament-min-team-size-input')).toBeVisible();
+      await expect(page.getByTestId('tournament-min-team-size-input')).toHaveValue('7');
+      await expect(page.getByTestId('tournament-max-team-size-input')).toHaveValue('11');
     });
 
     await test.step('Select Chess sport card and verify scoring format is GAME_POINTS', async () => {
@@ -126,6 +126,7 @@ test.describe('Multi-Sport Tournaments, Team Registration & Wave Fixtures', () =
       inThreeDays.setDate(inThreeDays.getDate() + 3);
 
       await page.getByTestId('tournament-deadline-input').fill(tomorrow.toISOString().split('T')[0]);
+      await page.getByTestId('tournament-min-team-size-input').fill('2');
       await page.getByTestId('tournament-start-date-input').fill(afterTomorrow.toISOString().split('T')[0]);
       await page.getByTestId('tournament-end-date-input').fill(inThreeDays.toISOString().split('T')[0]);
 
@@ -219,31 +220,56 @@ test.describe('Multi-Sport Tournaments, Team Registration & Wave Fixtures', () =
         await expect(page.getByTestId('record-score-modal')).toBeVisible();
         await expect(page.getByTestId('set-1-score-a')).toBeVisible();
         await page.getByTestId('submit-score-btn').click();
+        await expect(page.getByTestId('record-score-modal')).not.toBeVisible();
+        await expect(pm.tournamentDetails.alertSuccess).toBeVisible();
       } else {
         // Fallback to inline scoring if available
         await firstMatch.getByTestId('match-score-a-input').fill('11');
         await firstMatch.getByTestId('match-score-b-input').fill('7');
         await firstMatch.getByTestId('record-match-result-btn').click();
+        await expect(pm.tournamentDetails.alertSuccess).toBeVisible();
       }
     });
 
     await test.step('Complete remaining matches and verify Grand Final champion banner', async () => {
       const secondMatch = page.getByTestId('bracket-round-1').getByTestId('match-item').nth(1);
-      if (await secondMatch.isVisible() && await secondMatch.getByTestId('match-score-a-input').isVisible()) {
+      await expect(secondMatch).toBeVisible();
+      const secondModalBtn = secondMatch.locator('[data-testid^="open-sport-score-modal-"]');
+      if (await secondModalBtn.isVisible()) {
+        await secondModalBtn.click();
+        await expect(page.getByTestId('record-score-modal')).toBeVisible();
+        await page.getByTestId('set-1-score-a').fill('8');
+        await page.getByTestId('set-1-score-b').fill('11');
+        await page.getByTestId('set-2-score-a').fill('7');
+        await page.getByTestId('set-2-score-b').fill('11');
+        await page.getByTestId('submit-score-btn').click();
+        await expect(page.getByTestId('record-score-modal')).not.toBeVisible();
+        await expect(pm.tournamentDetails.alertSuccess).toBeVisible();
+      } else {
         await secondMatch.getByTestId('match-score-a-input').fill('8');
         await secondMatch.getByTestId('match-score-b-input').fill('11');
         await secondMatch.getByTestId('record-match-result-btn').click();
+        await expect(pm.tournamentDetails.alertSuccess).toBeVisible();
       }
 
       // Grand Final
-      const finalRound = page.getByTestId('bracket-round-2');
-      if (await finalRound.isVisible()) {
-        const finalMatch = finalRound.getByTestId('match-item').first();
-        if (await finalMatch.getByTestId('match-score-a-input').isVisible()) {
-          await finalMatch.getByTestId('match-score-a-input').fill('11');
-          await finalMatch.getByTestId('match-score-b-input').fill('9');
-          await finalMatch.getByTestId('record-match-result-btn').click();
-        }
+      await expect(page.getByTestId('bracket-round-2')).toBeVisible();
+      const finalMatch = page.getByTestId('bracket-round-2').getByTestId('match-item').first();
+      await expect(finalMatch).toBeVisible();
+      const finalModalBtn = finalMatch.locator('[data-testid^="open-sport-score-modal-"]');
+      if (await finalModalBtn.isVisible()) {
+        await finalModalBtn.click();
+        await expect(page.getByTestId('record-score-modal')).toBeVisible();
+        await page.getByTestId('set-1-score-a').fill('11');
+        await page.getByTestId('set-1-score-b').fill('8');
+        await page.getByTestId('set-2-score-a').fill('11');
+        await page.getByTestId('set-2-score-b').fill('7');
+        await page.getByTestId('submit-score-btn').click();
+        await expect(page.getByTestId('record-score-modal')).not.toBeVisible();
+      } else {
+        await finalMatch.getByTestId('match-score-a-input').fill('11');
+        await finalMatch.getByTestId('match-score-b-input').fill('9');
+        await finalMatch.getByTestId('record-match-result-btn').click();
       }
 
       // Verify Champion Crown

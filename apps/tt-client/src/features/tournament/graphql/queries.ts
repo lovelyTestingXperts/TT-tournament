@@ -224,3 +224,26 @@ export const GET_MATCH_BY_ID = gql`
   }
 `;
 
+export const GET_NOTIFICATIONS = gql`
+  query GetNotifications {
+    notifications {
+      id
+      title
+      message
+      category
+      sport
+      link
+      badge
+      badgeColor
+      read
+      createdAt
+    }
+  }
+`;
+
+export const GET_UNREAD_NOTIFICATION_COUNT = gql`
+  query GetUnreadNotificationCount {
+    unreadNotificationCount
+  }
+`;
+

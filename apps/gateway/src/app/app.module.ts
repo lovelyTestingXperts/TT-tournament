@@ -10,12 +10,14 @@ import { AppResolver } from './app.resolver';
 import { AuthModule } from './modules/auth/auth.module';
 import { TournamentModule } from './modules/tournament/tournament.module';
 import { UsersModule } from './modules/user/user.module';
+import { NotificationModule } from './modules/notification/notification.module';
 
 @Module({
   imports: [
     AuthModule,
     UsersModule,
     TournamentModule,
+    NotificationModule,
     ConfigModule.forRoot({
       isGlobal: true,
       load: [configuration],

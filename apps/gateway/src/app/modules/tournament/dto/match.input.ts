@@ -1,5 +1,6 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
-import { IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
+import { IsArray, IsInt, IsNotEmpty, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 
 @InputType()
 export class RecordMatchResultInput {
@@ -55,6 +56,9 @@ export class RegisterTeamInput {
   captainId!: string;
 
   @Field(() => [RegisterTeamMemberInput])
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => RegisterTeamMemberInput)
   members!: RegisterTeamMemberInput[];
 }
 

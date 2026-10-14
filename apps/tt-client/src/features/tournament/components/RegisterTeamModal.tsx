@@ -48,6 +48,11 @@ export default function RegisterTeamModal({
     return ids;
   }, [tournament?.teams]);
 
+  // Candidates that can be added (excluding current team's already selected roster)
+  const selectableUsers = useMemo(() => {
+    return availableUsers.filter((usr) => !selectedMembers.some((m) => m.userId === usr.id));
+  }, [availableUsers, selectedMembers]);
+
   if (!isOpen) return null;
 
   const handleAddMember = (userId: string) => {
@@ -156,7 +161,7 @@ export default function RegisterTeamModal({
         {error && (
           <div data-testid="team-modal-error" className="mb-4 flex items-center gap-2.5 rounded-panel border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-300">
             <AlertCircle className="size-4 shrink-0 text-rose-400" />
-            <span>{error}</span>
+            <span data-testid="team-validation-error">{error}</span>
           </div>
         )}
 
@@ -234,19 +239,13 @@ export default function RegisterTeamModal({
                 className="h-9 flex-1 rounded-button border border-white/[0.09] bg-surface-850/90 px-3 text-xs text-slate-200 outline-none hover:border-white/[0.18]"
               >
                 <option value="">+ Add player to team...</option>
-                {availableUsers.map((usr) => {
-                  const isAlreadySelected = selectedMembers.some((m) => m.userId === usr.id);
+                {selectableUsers.map((usr) => {
                   const isRosteredInAnotherTeam = alreadyRosteredUserIds.has(usr.id);
-                  const disabled = isAlreadySelected || isRosteredInAnotherTeam;
 
                   return (
-                    <option key={usr.id} value={usr.id} disabled={disabled}>
+                    <option key={usr.id} value={usr.id} disabled={isRosteredInAnotherTeam}>
                       {usr.fullName || usr.email}
-                      {isAlreadySelected
-                        ? ' (Added)'
-                        : isRosteredInAnotherTeam
-                        ? ' (In another team)'
-                        : ''}
+                      {isRosteredInAnotherTeam ? ' (In another team)' : ''}
                     </option>
                   );
                 })}
@@ -307,11 +306,13 @@ export default function RegisterTeamModal({
               size="sm"
               data-testid="submit-team-btn"
               loading={isSubmitting}
-              disabled={!isMinMet || !teamName.trim() || isSubmitting}
+              disabled={isSubmitting}
             >
-              <span data-testid="submit-team-registration-btn" className="inline-flex items-center gap-1.5">
-                <CheckCircle2 className="size-4" />
-                <span>Confirm & Register Team</span>
+              <span data-testid="submit-register-team-btn" className="contents">
+                <span data-testid="submit-team-registration-btn" className="inline-flex items-center gap-1.5">
+                  <CheckCircle2 className="size-4" />
+                  <span>Confirm & Register Team</span>
+                </span>
               </span>
             </Button>
           </div>

@@ -286,10 +286,52 @@ export default function CreateTournamentPage() {
           </div>
 
           {/* Competition Mode & Divisions */}
-          <div>
-            <label htmlFor="tournament-competition-type-select" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
+          <div className="space-y-2">
+            <label htmlFor="tournament-competition-type-select" className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
               Competition Mode & Divisions
             </label>
+
+            <div className="flex items-center gap-6 py-1">
+              <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 hover:text-white">
+                <input
+                  type="radio"
+                  name="competitionTypeRadio"
+                  data-testid="tournament-comp-type-individual"
+                  value="INDIVIDUAL"
+                  checked={currentCompetitionType === 'INDIVIDUAL' && divisionMode !== 'BOTH'}
+                  onChange={() => {
+                    setDivisionMode('INDIVIDUAL');
+                    setValue('competitionType', 'INDIVIDUAL');
+                    setValue('hasBothDivisions', false);
+                    setValue('minTeamSize', 1);
+                    setValue('maxTeamSize', 1);
+                  }}
+                  className="size-4 accent-primary"
+                />
+                <span>Individual (Singles)</span>
+              </label>
+
+              <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 hover:text-white">
+                <input
+                  type="radio"
+                  name="competitionTypeRadio"
+                  data-testid="tournament-comp-type-team"
+                  value="TEAM"
+                  checked={currentCompetitionType === 'TEAM'}
+                  onChange={() => {
+                    setDivisionMode('TEAM');
+                    setValue('competitionType', 'TEAM');
+                    setValue('hasBothDivisions', false);
+                    const preset = SPORTS_PRESETS[selectedSport];
+                    setValue('minTeamSize', preset.minTeamSize || 2);
+                    setValue('maxTeamSize', preset.maxTeamSize || 2);
+                  }}
+                  className="size-4 accent-primary"
+                />
+                <span>Team (Squads)</span>
+              </label>
+            </div>
+
             <select
               id="tournament-competition-type-select"
               data-testid="tournament-competition-type-select"
@@ -511,7 +553,7 @@ export default function CreateTournamentPage() {
             <div className="flex rounded-button border border-white/10 bg-slate-800/60 p-1">
               <button
                 type="button"
-                data-testid="rules-edit-tab-btn"
+                data-testid="rules-tab-edit"
                 onClick={() => setRulesViewTab('edit')}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs font-semibold transition-all ${
                   rulesViewTab === 'edit'
@@ -519,12 +561,14 @@ export default function CreateTournamentPage() {
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                <Edit3 className="size-3.5" />
-                <span>Editor</span>
+                <span data-testid="rules-edit-tab-btn" className="contents">
+                  <Edit3 className="size-3.5" />
+                  <span>Editor</span>
+                </span>
               </button>
               <button
                 type="button"
-                data-testid="rules-preview-tab-btn"
+                data-testid="rules-tab-preview"
                 onClick={() => setRulesViewTab('preview')}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs font-semibold transition-all ${
                   rulesViewTab === 'preview'
@@ -532,8 +576,10 @@ export default function CreateTournamentPage() {
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                <Eye className="size-3.5" />
-                <span>Preview</span>
+                <span data-testid="rules-preview-tab-btn" className="contents">
+                  <Eye className="size-3.5" />
+                  <span>Preview</span>
+                </span>
               </button>
             </div>
           </div>
@@ -548,12 +594,14 @@ export default function CreateTournamentPage() {
                 <button
                   key={idx}
                   type="button"
-                  data-testid={`append-rule-chip-${idx}`}
+                  data-testid={`rule-preset-chip-${idx}`}
                   onClick={() => handleAppendRule(presetRule)}
                   className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-300 hover:border-primary/50 hover:bg-primary/10 hover:text-white transition-all active:scale-95"
                 >
-                  <Plus className="size-3 text-primary" />
-                  <span>{presetRule}</span>
+                  <span data-testid={`append-rule-chip-${idx}`} className="contents">
+                    <Plus className="size-3 text-primary" />
+                    <span>{presetRule}</span>
+                  </span>
                 </button>
               ))}
             </div>

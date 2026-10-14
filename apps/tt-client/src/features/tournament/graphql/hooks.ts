@@ -1,6 +1,12 @@
 import { useMutation, useQuery } from '@apollo/client/react';
 
-import { GET_MATCHES, GET_TOURNAMENT, GET_TOURNAMENTS } from './queries';
+import {
+  GET_MATCHES,
+  GET_TOURNAMENT,
+  GET_TOURNAMENTS,
+  GET_NOTIFICATIONS,
+  GET_UNREAD_NOTIFICATION_COUNT,
+} from './queries';
 import {
   CREATE_TOURNAMENT,
   UPDATE_TOURNAMENT,
@@ -14,6 +20,9 @@ import {
   CLOSE_REGISTRATION,
   DRAW_WAVE_FIXTURES,
   REGISTER_TEAM,
+  MARK_NOTIFICATION_AS_READ,
+  MARK_ALL_NOTIFICATIONS_AS_READ,
+  CLEAR_ALL_NOTIFICATIONS,
 } from './mutations';
 
 export function useTournaments(input?: any) {
@@ -109,3 +118,36 @@ export function useResetAndSeedDatabase() {
     refetchQueries: [{ query: GET_TOURNAMENTS }, { query: GET_MATCHES }],
   });
 }
+
+export function useNotifications() {
+  return useQuery<any>(GET_NOTIFICATIONS, {
+    fetchPolicy: 'cache-and-network',
+    pollInterval: 10000,
+  });
+}
+
+export function useUnreadNotificationCount() {
+  return useQuery<any>(GET_UNREAD_NOTIFICATION_COUNT, {
+    fetchPolicy: 'cache-and-network',
+    pollInterval: 10000,
+  });
+}
+
+export function useMarkNotificationAsRead() {
+  return useMutation<any>(MARK_NOTIFICATION_AS_READ, {
+    refetchQueries: [{ query: GET_NOTIFICATIONS }, { query: GET_UNREAD_NOTIFICATION_COUNT }],
+  });
+}
+
+export function useMarkAllNotificationsAsRead() {
+  return useMutation<any>(MARK_ALL_NOTIFICATIONS_AS_READ, {
+    refetchQueries: [{ query: GET_NOTIFICATIONS }, { query: GET_UNREAD_NOTIFICATION_COUNT }],
+  });
+}
+
+export function useClearAllNotifications() {
+  return useMutation<any>(CLEAR_ALL_NOTIFICATIONS, {
+    refetchQueries: [{ query: GET_NOTIFICATIONS }, { query: GET_UNREAD_NOTIFICATION_COUNT }],
+  });
+}
+

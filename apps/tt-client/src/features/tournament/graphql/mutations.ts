@@ -260,3 +260,25 @@ export const START_MATCH = gql`
   }
 `;
 
+export const MARK_NOTIFICATION_AS_READ = gql`
+  mutation MarkNotificationAsRead($id: String!) {
+    markNotificationAsRead(id: $id) {
+      id
+      read
+    }
+  }
+`;
+
+export const MARK_ALL_NOTIFICATIONS_AS_READ = gql`
+  mutation MarkAllNotificationsAsRead {
+    markAllNotificationsAsRead
+  }
+`;
+
+export const CLEAR_ALL_NOTIFICATIONS = gql`
+  mutation ClearAllNotifications {
+    clearAllNotifications
+  }
+`;
+
+
