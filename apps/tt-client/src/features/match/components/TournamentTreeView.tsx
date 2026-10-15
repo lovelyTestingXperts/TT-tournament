@@ -165,6 +165,8 @@ export default function TournamentTreeView({
     return (
       <div
         key={match.id}
+        data-testid={match.isFinal ? 'tree-match-card-final' : `tree-match-card-r${match.round}-m${match.matchNumber}`}
+        data-match-id={match.id}
         onClick={() => navigate(`/matches/${match.id}`)}
         className={`relative flex flex-col gap-1.5 rounded-2xl border p-2.5 transition-all cursor-pointer backdrop-blur-md ${
           match.isFinal

@@ -5,6 +5,7 @@ import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 
 export default defineConfig({
   root: __dirname,
+  base: process.env.VITE_BASE_PATH || '/',
 
   cacheDir:
     '../../node_modules/.vite/apps/tt-client',
